@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { useLoaderData, useActionData, useNavigation, Form } from "@remix-run/react";
+import { useLoaderData, useActionData, useNavigation, Form, useSubmit } from "@remix-run/react";
 import {
   Page,
   Card,
@@ -108,6 +108,7 @@ export default function EditAnnouncementBar() {
   const { announcementBar } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const submit = useSubmit();
   const shopify = useAppBridge();
   const isLoading = navigation.state === "submitting";
 
@@ -655,7 +656,42 @@ export default function EditAnnouncementBar() {
                 )}
 
                 <ButtonGroup>
-                  <Button submit variant="primary" loading={isLoading}>
+                  <Button 
+                    variant="primary" 
+                    loading={isLoading}
+                    onClick={() => {
+                      const formData = new FormData();
+                      formData.append("name", name);
+                      formData.append("announcementType", announcementType);
+                      formData.append("title", title);
+                      formData.append("subtitle", subtitle);
+                      formData.append("discountCode", discountCode);
+                      formData.append("callToAction", callToAction);
+                      formData.append("link", link);
+                      formData.append("showCloseIcon", showCloseIcon ? "on" : "");
+                      formData.append("position", position);
+                      formData.append("backgroundColor", convertHsvaToHex(backgroundColor));
+                      formData.append("borderRadius", borderRadius.toString());
+                      formData.append("borderWidth", borderWidth.toString());
+                      formData.append("borderColor", convertHsvaToHex(borderColor));
+                      formData.append("fontFamily", fontFamily);
+                      formData.append("titleSize", titleSize.toString());
+                      formData.append("titleColor", convertHsvaToHex(titleColor));
+                      formData.append("subtitleSize", subtitleSize.toString());
+                      formData.append("subtitleColor", convertHsvaToHex(subtitleColor));
+                      formData.append("discountCodeColor", convertHsvaToHex(discountCodeColor));
+                      formData.append("buttonColor", convertHsvaToHex(buttonColor));
+                      formData.append("buttonTextSize", buttonTextSize.toString());
+                      formData.append("buttonTextColor", convertHsvaToHex(buttonTextColor));
+                      formData.append("buttonBorderRadius", buttonBorderRadius.toString());
+                      formData.append("displayLocation", displayLocation);
+                      formData.append("targetProducts", JSON.stringify(selectedProducts.map(p => p.id)));
+                      formData.append("targetCollections", JSON.stringify(selectedCollections.map(c => c.id)));
+                      formData.append("isPublished", isPublished ? "on" : "");
+                      
+                      submit(formData, { method: "post" });
+                    }}
+                  >
                     Save changes
                   </Button>
                   <Button url="/app/announcements">Cancel</Button>
