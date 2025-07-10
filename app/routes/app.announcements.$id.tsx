@@ -16,7 +16,7 @@ import {
   Box,
   Divider,
 } from "@shopify/polaris";
-import { TitleBar } from "@shopify/app-bridge-react";
+import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { useState, useCallback, useEffect } from "react";
@@ -92,6 +92,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
         buttonTextColor: formData.get("buttonTextColor") as string,
         buttonBorderRadius: parseInt(formData.get("buttonBorderRadius") as string) || 4,
         displayLocation: formData.get("displayLocation") as string,
+        targetProducts: formData.get("targetProducts") ? JSON.parse(formData.get("targetProducts") as string) : null,
+        targetCollections: formData.get("targetCollections") ? JSON.parse(formData.get("targetCollections") as string) : null,
         isPublished: formData.get("isPublished") === "on",
       },
     });
@@ -106,6 +108,7 @@ export default function EditAnnouncementBar() {
   const { announcementBar } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
+  const shopify = useAppBridge();
   const isLoading = navigation.state === "submitting";
 
   // Form state initialized with existing data
@@ -133,6 +136,8 @@ export default function EditAnnouncementBar() {
   const [buttonTextColor, setButtonTextColor] = useState(hexToHsva(announcementBar.buttonTextColor));
   const [buttonBorderRadius, setButtonBorderRadius] = useState(announcementBar.buttonBorderRadius);
   const [displayLocation, setDisplayLocation] = useState(announcementBar.displayLocation);
+  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
+  const [selectedCollections, setSelectedCollections] = useState<any[]>([]);
   const [isPublished, setIsPublished] = useState(announcementBar.isPublished);
 
   function hexToHsva(hex: string) {
@@ -193,6 +198,30 @@ export default function EditAnnouncementBar() {
 
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
+
+  const openProductPicker = useCallback(() => {
+    shopify.resourcePicker({
+      type: "product",
+      multiple: true,
+      action: "select",
+    }).then((selection) => {
+      setSelectedProducts(selection || []);
+    }).catch((error) => {
+      console.log('Product picker cancelled or error:', error);
+    });
+  }, [shopify]);
+
+  const openCollectionPicker = useCallback(() => {
+    shopify.resourcePicker({
+      type: "collection",
+      multiple: true,
+      action: "select",
+    }).then((selection) => {
+      setSelectedCollections(selection || []);
+    }).catch((error) => {
+      console.log('Collection picker cancelled or error:', error);
+    });
+  }, [shopify]);
 
   const announcementTypeOptions = [
     { label: "Simple", value: "simple" },
@@ -554,6 +583,52 @@ export default function EditAnnouncementBar() {
                     onChange={setDisplayLocation}
                     name="displayLocation"
                   />
+
+                  {displayLocation === "products" && (
+                    <div>
+                      <Text as="p" variant="bodyMd" tone="subdued">
+                        Select specific products where the announcement bar should appear
+                      </Text>
+                      <div style={{ marginTop: "8px" }}>
+                        <Button onClick={openProductPicker}>
+                          {selectedProducts.length > 0 
+                            ? `${selectedProducts.length} product${selectedProducts.length > 1 ? 's' : ''} selected`
+                            : "Select products"
+                          }
+                        </Button>
+                      </div>
+                      {selectedProducts.length > 0 && (
+                        <div style={{ marginTop: "8px" }}>
+                          <Text as="p" variant="bodySm">
+                            Selected: {selectedProducts.map(p => p.title).join(", ")}
+                          </Text>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {displayLocation === "collections" && (
+                    <div>
+                      <Text as="p" variant="bodyMd" tone="subdued">
+                        Select collections - announcement bar will appear on all products in these collections
+                      </Text>
+                      <div style={{ marginTop: "8px" }}>
+                        <Button onClick={openCollectionPicker}>
+                          {selectedCollections.length > 0 
+                            ? `${selectedCollections.length} collection${selectedCollections.length > 1 ? 's' : ''} selected`
+                            : "Select collections"
+                          }
+                        </Button>
+                      </div>
+                      {selectedCollections.length > 0 && (
+                        <div style={{ marginTop: "8px" }}>
+                          <Text as="p" variant="bodySm">
+                            Selected: {selectedCollections.map(c => c.title).join(", ")}
+                          </Text>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </FormLayout>
 
                 <Divider />
