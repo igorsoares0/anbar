@@ -1,0 +1,366 @@
+{% comment %}
+Theme: Announcement Bars App Embed
+Description: Automatically displays active announcement bars based on their location settings
+{% endcomment %}
+
+<style>
+  .anbar-embed-container {
+    position: relative;
+    width: 100%;
+  }
+  
+  .anbar-embed-top {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  
+  .anbar-embed-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+  
+  .anbar-announcement-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+  }
+  
+  .anbar-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  
+  .anbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .anbar-title {
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .anbar-subtitle {
+    margin: 0;
+  }
+  
+  .anbar-discount-code {
+    font-weight: bold;
+    text-decoration: underline;
+    margin: 0;
+  }
+  
+  .anbar-button {
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    padding: 6px 12px;
+    transition: opacity 0.2s ease;
+  }
+  
+  .anbar-button:hover {
+    opacity: 0.8;
+  }
+  
+  .anbar-close {
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  .anbar-close:hover {
+    opacity: 0.7;
+  }
+  
+  .anbar-clickable {
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .anbar-continuous {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  
+  .anbar-continuous .anbar-content {
+    animation: anbar-scroll 20s linear infinite;
+  }
+  
+  @keyframes anbar-scroll {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+  
+  .anbar-multiple {
+    position: relative;
+  }
+  
+  .anbar-arrow {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .anbar-arrow:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  @media (max-width: 768px) {
+    .anbar-announcement-bar {
+      flex-direction: column;
+      text-align: center;
+      padding: 8px 12px;
+    }
+    
+    .anbar-content {
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    
+    .anbar-actions {
+      justify-content: center;
+    }
+    
+    .anbar-continuous .anbar-content {
+      flex-direction: row;
+      margin-bottom: 0;
+    }
+  }
+</style>
+
+{%- assign announcement_bars = shop.metafields.anbar.bars.value -%}
+{%- if announcement_bars -%}
+  {%- for bar in announcement_bars -%}
+    {%- if bar.isActive and bar.isPublished -%}
+      {%- assign show_bar = false -%}
+      
+      {%- case bar.displayLocation -%}
+        {%- when 'all_pages' -%}
+          {%- assign show_bar = true -%}
+        {%- when 'homepage' -%}
+          {%- if template.name == 'index' -%}
+            {%- assign show_bar = true -%}
+          {%- endif -%}
+        {%- when 'cart' -%}
+          {%- if template.name == 'cart' and bar.position == 'top' -%}
+            {%- assign show_bar = true -%}
+          {%- endif -%}
+        {%- when 'all_collections' -%}
+          {%- if template.name == 'collection' -%}
+            {%- assign show_bar = true -%}
+          {%- endif -%}
+        {%- when 'products' -%}
+          {%- if template.name == 'product' -%}
+            {%- if bar.targetProducts -%}
+              {%- for product_id in bar.targetProducts -%}
+                {%- if product.id == product_id -%}
+                  {%- assign show_bar = true -%}
+                  {%- break -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- else -%}
+              {%- assign show_bar = true -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- when 'collections' -%}
+          {%- if template.name == 'product' and bar.targetCollections -%}
+            {%- for collection_id in bar.targetCollections -%}
+              {%- for product_collection in product.collections -%}
+                {%- if product_collection.id == collection_id -%}
+                  {%- assign show_bar = true -%}
+                  {%- break -%}
+                {%- endif -%}
+              {%- endfor -%}
+              {%- if show_bar -%}
+                {%- break -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+        {%- when 'specific_collections' -%}
+          {%- if template.name == 'collection' and bar.targetCollectionPages -%}
+            {%- for collection_id in bar.targetCollectionPages -%}
+              {%- if collection.id == collection_id -%}
+                {%- assign show_bar = true -%}
+                {%- break -%}
+              {%- endif -%}
+            {%- endfor -%}
+          {%- endif -%}
+      {%- endcase -%}
+      
+      {%- if show_bar -%}
+        <div class="anbar-embed-container anbar-embed-{{ bar.position }}" 
+             id="anbar-embed-{{ bar.id }}">
+          
+          {%- assign wrapper_element = 'div' -%}
+          {%- assign wrapper_attrs = '' -%}
+          
+          {%- if bar.callToAction == 'full_bar' and bar.link != blank -%}
+            {%- assign wrapper_element = 'a' -%}
+            {%- assign wrapper_attrs = 'href="' | append: bar.link | append: '" class="anbar-clickable"' -%}
+          {%- endif -%}
+          
+          <{{ wrapper_element }} 
+            {% if wrapper_attrs != blank %}{{ wrapper_attrs }}{% endif %}
+            class="anbar-announcement-bar{% if bar.announcementType == 'continuous' %} anbar-continuous{% elsif bar.announcementType == 'multiple' %} anbar-multiple{% endif %}"
+            style="
+              background-color: {{ bar.backgroundColor }};
+              border-radius: {{ bar.borderRadius }}px;
+              border: {{ bar.borderWidth }}px solid {{ bar.borderColor }};
+              font-family: {{ bar.fontFamily }};
+            ">
+            
+            <div class="anbar-content">
+              {%- if bar.title != blank -%}
+                <span class="anbar-title" style="
+                  font-size: {{ bar.titleSize }}px;
+                  color: {{ bar.titleColor }};
+                ">{{ bar.title }}</span>
+              {%- endif -%}
+              
+              {%- if bar.subtitle != blank -%}
+                <span class="anbar-subtitle" style="
+                  font-size: {{ bar.subtitleSize }}px;
+                  color: {{ bar.subtitleColor }};
+                ">{{ bar.subtitle }}</span>
+              {%- endif -%}
+              
+              {%- if bar.discountCode != blank -%}
+                <span class="anbar-discount-code" style="
+                  font-size: {{ bar.titleSize }}px;
+                  color: {{ bar.discountCodeColor }};
+                ">{{ bar.discountCode }}</span>
+              {%- endif -%}
+            </div>
+            
+            <div class="anbar-actions">
+              {%- if bar.announcementType == 'multiple' -%}
+                <button class="anbar-arrow" onclick="anbarPrevious('{{ bar.id }}')" style="color: {{ bar.titleColor }};">‹</button>
+                <button class="anbar-arrow" onclick="anbarNext('{{ bar.id }}')" style="color: {{ bar.titleColor }};">›</button>
+              {%- endif -%}
+              
+              {%- if bar.callToAction == 'button' and bar.link != blank -%}
+                <a href="{{ bar.link }}" 
+                   class="anbar-button"
+                   style="
+                     background-color: {{ bar.buttonColor }};
+                     color: {{ bar.buttonTextColor }};
+                     font-size: {{ bar.buttonTextSize }}px;
+                     border-radius: {{ bar.buttonBorderRadius }}px;
+                   ">Shop Now</a>
+              {%- endif -%}
+              
+              {%- if bar.showCloseIcon -%}
+                <button class="anbar-close" 
+                        onclick="anbarClose('{{ bar.id }}')"
+                        style="color: {{ bar.titleColor }};">×</button>
+              {%- endif -%}
+            </div>
+          </{{ wrapper_element }}>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+<script>
+  function anbarClose(barId) {
+    const bar = document.getElementById('anbar-embed-' + barId);
+    if (bar) {
+      bar.style.display = 'none';
+      sessionStorage.setItem('anbar-closed-' + barId, 'true');
+    }
+  }
+  
+  function anbarNext(barId) {
+    // Implement multiple announcement navigation
+    console.log('Next announcement for bar:', barId);
+  }
+  
+  function anbarPrevious(barId) {
+    // Implement multiple announcement navigation
+    console.log('Previous announcement for bar:', barId);
+  }
+  
+  // Check if bars were previously closed in this session
+  document.addEventListener('DOMContentLoaded', function() {
+    {%- if announcement_bars -%}
+      {%- for bar in announcement_bars -%}
+        {%- if bar.isActive and bar.isPublished -%}
+          const barId{{ forloop.index }} = '{{ bar.id }}';
+          if (sessionStorage.getItem('anbar-closed-' + barId{{ forloop.index }}) === 'true') {
+            const bar{{ forloop.index }} = document.getElementById('anbar-embed-' + barId{{ forloop.index }});
+            if (bar{{ forloop.index }}) {
+              bar{{ forloop.index }}.style.display = 'none';
+            }
+          }
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+    
+    // Adjust body padding for fixed positioned bars
+    const topBars = document.querySelectorAll('.anbar-embed-top');
+    const bottomBars = document.querySelectorAll('.anbar-embed-bottom');
+    
+    let topHeight = 0;
+    let bottomHeight = 0;
+    
+    topBars.forEach(bar => {
+      if (bar.style.display !== 'none') {
+        topHeight += bar.offsetHeight;
+      }
+    });
+    
+    bottomBars.forEach(bar => {
+      if (bar.style.display !== 'none') {
+        bottomHeight += bar.offsetHeight;
+      }
+    });
+    
+    if (topHeight > 0) {
+      document.body.style.paddingTop = topHeight + 'px';
+    }
+    
+    if (bottomHeight > 0) {
+      document.body.style.paddingBottom = bottomHeight + 'px';
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Announcement Bars",
+  "target": "head",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable announcement bars",
+      "default": true,
+      "info": "Show announcement bars throughout your store"
+    }
+  ]
+}
+{% endschema %}

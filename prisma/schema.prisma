@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.sqlite"
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+model AnnouncementBar {
+  id                String   @id @default(cuid())
+  shop              String
+  name              String
+  isActive          Boolean  @default(true)
+  isPublished       Boolean  @default(false)
+  
+  // Content fields
+  announcementType  String   // "simple", "continuous", "multiple"
+  title             String?
+  subtitle          String?
+  discountCode      String?
+  callToAction      String   // "button", "none", "full_bar"
+  link              String?
+  showCloseIcon     Boolean  @default(true)
+  
+  // Design fields
+  position          String   @default("top") // "top", "bottom"
+  backgroundColor   String   @default("#000000")
+  borderRadius      Int      @default(0)
+  borderWidth       Int      @default(0)
+  borderColor       String   @default("#000000")
+  
+  // Typography
+  fontFamily        String   @default("Arial")
+  titleSize         Int      @default(16)
+  titleColor        String   @default("#ffffff")
+  subtitleSize      Int      @default(14)
+  subtitleColor     String   @default("#ffffff")
+  discountCodeColor String   @default("#ffff00")
+  
+  // Button styling
+  buttonColor       String   @default("#ffffff")
+  buttonTextSize    Int      @default(14)
+  buttonTextColor   String   @default("#000000")
+  buttonBorderRadius Int     @default(4)
+  
+  // Location targeting
+  displayLocation   String   @default("all_pages") // "all_pages", "homepage", "collections", "products", "cart", "custom"
+  targetCollections Json?    // Array of collection IDs
+  targetProducts    Json?    // Array of product IDs
+  targetCollectionPages Json? // Array of specific collection page IDs
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([shop])
+  @@index([shop, isActive])
+}
