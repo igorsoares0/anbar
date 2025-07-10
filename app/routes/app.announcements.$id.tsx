@@ -3,7 +3,6 @@ import { json, redirect } from "@remix-run/node";
 import { useLoaderData, useActionData, useNavigation, Form } from "@remix-run/react";
 import {
   Page,
-  Layout,
   Card,
   FormLayout,
   TextField,
@@ -231,6 +230,43 @@ export default function EditAnnouncementBar() {
   ];
 
   return (
+    <>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .announcement-editor-layout {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 20px !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            padding: 0 20px !important;
+          }
+          
+          .editor-form-column {
+            width: 100% !important;
+          }
+          
+          .preview-column {
+            position: sticky !important;
+            top: 20px !important;
+            height: fit-content !important;
+            max-height: calc(100vh - 40px) !important;
+            overflow-y: auto !important;
+          }
+          
+          @media (max-width: 768px) {
+            .announcement-editor-layout {
+              grid-template-columns: 1fr !important;
+            }
+            
+            .preview-column {
+              position: static !important;
+              height: auto !important;
+              max-height: none !important;
+            }
+          }
+        `
+      }} />
     <Page>
       <TitleBar
         title={`Edit: ${announcementBar.name}`}
@@ -263,8 +299,8 @@ export default function EditAnnouncementBar() {
           },
         ]}
       />
-      <Layout>
-        <Layout.Section variant="oneHalf">
+      <div className="announcement-editor-layout">
+        <div className="editor-form-column">
           <Form method="post">
             <Card>
               <BlockStack gap="500">
@@ -566,14 +602,14 @@ export default function EditAnnouncementBar() {
               </BlockStack>
             </Card>
           </Form>
-        </Layout.Section>
+        </div>
 
-        <Layout.Section variant="oneHalf">
+        <div className="preview-column">
           <Card>
-            <BlockStack gap="400">
-              <Text as="h2" variant="headingLg">
-                Preview
-              </Text>
+              <BlockStack gap="400">
+                <Text as="h2" variant="headingLg">
+                  Preview
+                </Text>
               
               <Box
                 padding="400"
@@ -660,8 +696,9 @@ export default function EditAnnouncementBar() {
               </Box>
             </BlockStack>
           </Card>
-        </Layout.Section>
-      </Layout>
+        </div>
+      </div>
     </Page>
+    </>
   );
 }
