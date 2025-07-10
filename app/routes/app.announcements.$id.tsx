@@ -157,16 +157,16 @@ export default function EditAnnouncementBar() {
     hue = Math.round(hue * 60);
     if (hue < 0) hue += 360;
 
-    const saturation = max === 0 ? 0 : Math.round((diff / max) * 100);
-    const brightness = Math.round(max * 100);
+    const saturation = max === 0 ? 0 : (diff / max);
+    const brightness = max;
 
-    return { hue, saturation, brightness };
+    return { hue, saturation, brightness, alpha: 1 };
   }
 
   const convertHsvaToHex = (hsva: any) => {
-    const h = hsva.hue;
-    const s = hsva.saturation / 100;
-    const v = hsva.brightness / 100;
+    const h = hsva.hue || 0;
+    const s = hsva.saturation || 0;
+    const v = hsva.brightness || 0;
 
     const c = v * s;
     const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
@@ -613,7 +613,6 @@ export default function EditAnnouncementBar() {
               
               <Box
                 padding="400"
-                background="bg-surface-secondary"
                 borderRadius="200"
               >
                 <div

@@ -20,7 +20,7 @@ import {
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
@@ -78,30 +78,36 @@ export default function NewAnnouncementBar() {
   // Form state
   const [name, setName] = useState("");
   const [announcementType, setAnnouncementType] = useState("simple");
-  const [title, setTitle] = useState("");
-  const [subtitle, setSubtitle] = useState("");
-  const [discountCode, setDiscountCode] = useState("");
-  const [callToAction, setCallToAction] = useState("none");
+  const [title, setTitle] = useState("Free shipping on orders over $50!");
+  const [subtitle, setSubtitle] = useState("Limited time offer");
+  const [discountCode, setDiscountCode] = useState("SAVE50");
+  const [callToAction, setCallToAction] = useState("button");
   const [link, setLink] = useState("");
   const [showCloseIcon, setShowCloseIcon] = useState(true);
   const [position, setPosition] = useState("top");
-  const [backgroundColor, setBackgroundColor] = useState({ hue: 0, brightness: 0, saturation: 0 });
+  const [backgroundColor, setBackgroundColor] = useState({ hue: 220, brightness: 0.6, saturation: 0.8, alpha: 1 });
   const [borderRadius, setBorderRadius] = useState(0);
   const [borderWidth, setBorderWidth] = useState(0);
-  const [borderColor, setBorderColor] = useState({ hue: 0, brightness: 0, saturation: 0 });
+  const [borderColor, setBorderColor] = useState({ hue: 0, brightness: 0.3, saturation: 0, alpha: 1 });
   const [fontFamily, setFontFamily] = useState("Arial");
   const [titleSize, setTitleSize] = useState(16);
-  const [titleColor, setTitleColor] = useState({ hue: 0, brightness: 100, saturation: 0 });
+  const [titleColor, setTitleColor] = useState({ hue: 0, brightness: 0.95, saturation: 0, alpha: 1 });
   const [subtitleSize, setSubtitleSize] = useState(14);
-  const [subtitleColor, setSubtitleColor] = useState({ hue: 0, brightness: 100, saturation: 0 });
-  const [discountCodeColor, setDiscountCodeColor] = useState({ hue: 60, brightness: 100, saturation: 100 });
-  const [buttonColor, setButtonColor] = useState({ hue: 0, brightness: 100, saturation: 0 });
+  const [subtitleColor, setSubtitleColor] = useState({ hue: 0, brightness: 0.85, saturation: 0, alpha: 1 });
+  const [discountCodeColor, setDiscountCodeColor] = useState({ hue: 60, brightness: 0.9, saturation: 1, alpha: 1 });
+  const [buttonColor, setButtonColor] = useState({ hue: 210, brightness: 0.6, saturation: 0.8, alpha: 1 });
   const [buttonTextSize, setButtonTextSize] = useState(14);
-  const [buttonTextColor, setButtonTextColor] = useState({ hue: 0, brightness: 0, saturation: 0 });
+  const [buttonTextColor, setButtonTextColor] = useState({ hue: 0, brightness: 1, saturation: 0, alpha: 1 });
   const [buttonBorderRadius, setButtonBorderRadius] = useState(4);
   const [displayLocation, setDisplayLocation] = useState("all_pages");
   const [isPublished, setIsPublished] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+
+  // Debug effect to log color values
+  useEffect(() => {
+    console.log('Current backgroundColor state:', backgroundColor);
+    console.log('Converted to HEX:', convertHsvaToHex(backgroundColor));
+  }, [backgroundColor]);
 
   const validateForm = useCallback(() => {
     const newErrors: {[key: string]: string} = {};
@@ -166,9 +172,11 @@ export default function NewAnnouncementBar() {
   ];
 
   const convertHsvaToHex = (hsva: any) => {
-    const h = hsva.hue;
-    const s = hsva.saturation / 100;
-    const v = hsva.brightness / 100;
+    console.log('Converting HSVA to HEX:', hsva);
+    const h = hsva.hue || 0;
+    // Polaris outputs saturation and brightness as decimals (0-1), not percentages (0-100)
+    const s = hsva.saturation || 0;
+    const v = hsva.brightness || 0;
 
     const c = v * s;
     const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
@@ -338,7 +346,10 @@ export default function NewAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={backgroundColor}
-                      onChange={setBackgroundColor}
+                      onChange={(color) => {
+                        console.log('Background color changed:', color);
+                        setBackgroundColor(color);
+                      }}
                     />
                   </Box>
 
@@ -551,7 +562,6 @@ export default function NewAnnouncementBar() {
               
               <Box
                 padding="400"
-                background="bg-surface-secondary"
                 borderRadius="200"
               >
                 <div
