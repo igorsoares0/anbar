@@ -152,7 +152,7 @@ Description: Automatically displays active announcement bars based on their loca
 </style>
 
 {%- assign announcement_bars = shop.metafields.anbar.bars.value -%}
-{%- if announcement_bars -%}
+{%- if settings.enabled != false and announcement_bars -%}
   {%- for bar in announcement_bars -%}
     {%- if bar.isActive and bar.isPublished -%}
       {%- assign show_bar = false -%}
@@ -174,6 +174,10 @@ Description: Automatically displays active announcement bars based on their loca
           {%- endif -%}
         {%- when 'products' -%}
           {%- if template.name == 'product' -%}
+            {%- assign show_bar = true -%}
+          {%- endif -%}
+        {%- when 'specific_products' -%}
+          {%- if template.name == 'product' -%}
             {%- if bar.targetProducts -%}
               {%- for product_id in bar.targetProducts -%}
                 {%- if product.id == product_id -%}
@@ -181,8 +185,6 @@ Description: Automatically displays active announcement bars based on their loca
                   {%- break -%}
                 {%- endif -%}
               {%- endfor -%}
-            {%- else -%}
-              {%- assign show_bar = true -%}
             {%- endif -%}
           {%- endif -%}
         {%- when 'collections' -%}
@@ -351,15 +353,15 @@ Description: Automatically displays active announcement bars based on their loca
 
 {% schema %}
 {
-  "name": "Announcement Bars",
-  "target": "head",
+  "name": "Announcement Bars (Auto)",
+  "target": "section",
   "settings": [
     {
       "type": "checkbox",
       "id": "enabled",
       "label": "Enable announcement bars",
       "default": true,
-      "info": "Show announcement bars throughout your store"
+      "info": "Automatically show announcement bars based on their location settings"
     }
   ]
 }

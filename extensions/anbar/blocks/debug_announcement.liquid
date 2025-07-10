@@ -1,0 +1,67 @@
+{% comment %}
+Debug block to test announcement bar data access
+{% endcomment %}
+
+<div style="background: red; color: white; padding: 10px; margin: 10px 0;">
+  <h3>DEBUG: Announcement Bars</h3>
+  <p>Settings enabled: {{ settings.enabled }}</p>
+  <p>Current template: {{ template.name }}</p>
+  <p>Current template suffix: {{ template.suffix }}</p>
+  <p>Raw metafield: {{ shop.metafields.anbar.bars.value }}</p>
+  <p>Metafield type: {{ shop.metafields.anbar.bars.type }}</p>
+  <p>Metafield exists: {% if shop.metafields.anbar.bars %}YES{% else %}NO{% endif %}</p>
+  
+  {%- assign announcement_bars = shop.metafields.anbar.bars.value -%}
+  {%- if announcement_bars -%}
+    <p>Found {{ announcement_bars.size }} announcement bars</p>
+    {%- for bar in announcement_bars -%}
+      <div style="border: 1px solid white; padding: 5px; margin: 5px 0;">
+        <p><strong>Bar {{ forloop.index }}: {{ bar.name }} ({{ bar.id }})</strong></p>
+        <p>Active: {{ bar.isActive }}, Published: {{ bar.isPublished }}</p>
+        <p>Location: {{ bar.displayLocation }}</p>
+        <p>Title: {{ bar.title }}</p>
+        
+        {%- assign show_bar = false -%}
+        {%- case bar.displayLocation -%}
+          {%- when 'all_pages' -%}
+            {%- assign show_bar = true -%}
+          {%- when 'homepage' -%}
+            {%- if template.name == 'index' -%}
+              {%- assign show_bar = true -%}
+            {%- endif -%}
+          {%- when 'cart' -%}
+            {%- if template.name == 'cart' -%}
+              {%- assign show_bar = true -%}
+            {%- endif -%}
+          {%- when 'all_collections' -%}
+            {%- if template.name == 'collection' -%}
+              {%- assign show_bar = true -%}
+            {%- endif -%}
+          {%- when 'products' -%}
+            {%- if template.name == 'product' -%}
+              {%- assign show_bar = true -%}
+            {%- endif -%}
+        {%- endcase -%}
+        
+        <p><strong>Should show: {{ show_bar }}</strong></p>
+      </div>
+    {%- endfor -%}
+  {%- else -%}
+    <p>No announcement bars found</p>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Debug Announcement",
+  "target": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable debug",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

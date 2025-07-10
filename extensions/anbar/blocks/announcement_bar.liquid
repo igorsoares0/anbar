@@ -165,6 +165,40 @@ Description: Displays an announcement bar with customizable styling and content
             {%- if template.name == 'product' -%}
               {%- assign show_bar = true -%}
             {%- endif -%}
+          {%- when 'specific_products' -%}
+            {%- if template.name == 'product' -%}
+              {%- if bar.targetProducts -%}
+                {%- for product_id in bar.targetProducts -%}
+                  {%- if product.id == product_id -%}
+                    {%- assign show_bar = true -%}
+                    {%- break -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- when 'collections' -%}
+            {%- if template.name == 'product' and bar.targetCollections -%}
+              {%- for collection_id in bar.targetCollections -%}
+                {%- for product_collection in product.collections -%}
+                  {%- if product_collection.id == collection_id -%}
+                    {%- assign show_bar = true -%}
+                    {%- break -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                {%- if show_bar -%}
+                  {%- break -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
+          {%- when 'specific_collections' -%}
+            {%- if template.name == 'collection' and bar.targetCollections -%}
+              {%- for collection_id in bar.targetCollections -%}
+                {%- if collection.id == collection_id -%}
+                  {%- assign show_bar = true -%}
+                  {%- break -%}
+                {%- endif -%}
+              {%- endfor -%}
+            {%- endif -%}
           {%- when 'custom' -%}
             {%- assign show_bar = true -%}
         {%- endcase -%}
@@ -280,7 +314,7 @@ Description: Displays an announcement bar with customizable styling and content
 
 {% schema %}
 {
-  "name": "Announcement Bar",
+  "name": "Announcement Bar (Custom)",
   "target": "section",
   "settings": [
     {

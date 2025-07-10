@@ -1,6 +1,6 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData, Link } from "@remix-run/react";
+import { useLoaderData, Link, useSubmit } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -11,6 +11,7 @@ import {
   ButtonGroup,
   EmptyState,
   Text,
+  InlineStack,
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
@@ -27,8 +28,85 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return json({ announcementBars });
 };
 
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { session, admin } = await authenticate.admin(request);
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "sync") {
+    try {
+      // Get all active and published announcement bars
+      const announcementBars = await prisma.announcementBar.findMany({
+        where: { 
+          shop: session.shop,
+          isActive: true,
+          isPublished: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      console.log('Syncing announcement bars:', announcementBars.length);
+      console.log('Shop:', session.shop);
+
+      // First, get the shop ID
+      const shopResult = await admin.graphql(`
+        query {
+          shop {
+            id
+            myshopifyDomain
+          }
+        }
+      `);
+      
+      const shopData = await shopResult.json();
+      console.log('Shop data:', JSON.stringify(shopData, null, 2));
+      const shopId = shopData.data.shop.id;
+
+      // Store bars in shop metafields for theme access
+      const metafieldsResult = await admin.graphql(`
+        mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+          metafieldsSet(metafields: $metafields) {
+            metafields {
+              id
+              key
+              value
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+      `, {
+        variables: {
+          metafields: [
+            {
+              ownerId: shopId,
+              namespace: "anbar",
+              key: "bars",
+              value: JSON.stringify(announcementBars),
+              type: "json",
+            },
+          ],
+        },
+      });
+
+      const result = await metafieldsResult.json();
+      console.log('Sync metafields result:', JSON.stringify(result, null, 2));
+
+      return json({ success: true, synced: announcementBars.length, result });
+    } catch (error) {
+      console.error("Error syncing announcement bars:", error);
+      return json({ error: error.message }, { status: 400 });
+    }
+  }
+
+  return json({ error: "Unknown action" }, { status: 400 });
+};
+
 export default function AnnouncementBarsIndex() {
   const { announcementBars } = useLoaderData<typeof loader>();
+  const submit = useSubmit();
 
   const rows = announcementBars.map((bar) => [
     bar.name,
@@ -61,6 +139,12 @@ export default function AnnouncementBarsIndex() {
     </ButtonGroup>,
   ]);
 
+  const handleSync = () => {
+    const formData = new FormData();
+    formData.append("intent", "sync");
+    submit(formData, { method: "post" });
+  };
+
   return (
     <Page>
       <TitleBar
@@ -69,8 +153,30 @@ export default function AnnouncementBarsIndex() {
           content: "Create announcement bar",
           url: "/app/announcements/new",
         }}
+        secondaryActions={[
+          {
+            content: "Sync to Theme",
+            onAction: handleSync,
+          },
+        ]}
       />
       <Layout>
+        <Layout.Section>
+          <Card>
+            <InlineStack gap="400" align="start">
+              <Button 
+                variant="primary" 
+                onClick={handleSync}
+                size="large"
+              >
+                Sync to Theme (Click this first!)
+              </Button>
+              <Text as="p" variant="bodyMd" color="subdued">
+                Click this button to sync your announcement bars to your theme so they can be displayed.
+              </Text>
+            </InlineStack>
+          </Card>
+        </Layout.Section>
         <Layout.Section>
           {announcementBars.length === 0 ? (
             <Card>
