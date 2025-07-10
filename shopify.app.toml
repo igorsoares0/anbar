@@ -3,7 +3,7 @@
 client_id = "4d36bf6cef9a57c0a1365018b03816d8"
 name = "anbar"
 handle = "anbar-1"
-application_url = "https://demo-lynn-structures-outputs.trycloudflare.com"
+application_url = "https://clarity-installations-consideration-veterinary.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,7 +26,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://demo-lynn-structures-outputs.trycloudflare.com/auth/callback", "https://demo-lynn-structures-outputs.trycloudflare.com/auth/shopify/callback", "https://demo-lynn-structures-outputs.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://clarity-installations-consideration-veterinary.trycloudflare.com/auth/callback", "https://clarity-installations-consideration-veterinary.trycloudflare.com/auth/shopify/callback", "https://clarity-installations-consideration-veterinary.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

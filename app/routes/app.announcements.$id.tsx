@@ -394,12 +394,10 @@ export default function EditAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={backgroundColor}
-                      onChange={setBackgroundColor}
-                    />
-                    <input
-                      type="hidden"
-                      name="backgroundColor"
-                      value={convertHsvaToHex(backgroundColor)}
+                      onChange={(color) => {
+                        console.log('Background color changed:', color);
+                        setBackgroundColor(color);
+                      }}
                     />
                   </Box>
 
@@ -425,12 +423,10 @@ export default function EditAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={borderColor}
-                      onChange={setBorderColor}
-                    />
-                    <input
-                      type="hidden"
-                      name="borderColor"
-                      value={convertHsvaToHex(borderColor)}
+                      onChange={(color) => {
+                        console.log('Border color changed:', color);
+                        setBorderColor(color);
+                      }}
                     />
                   </Box>
 
@@ -456,12 +452,10 @@ export default function EditAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={titleColor}
-                      onChange={setTitleColor}
-                    />
-                    <input
-                      type="hidden"
-                      name="titleColor"
-                      value={convertHsvaToHex(titleColor)}
+                      onChange={(color) => {
+                        console.log('Title color changed:', color);
+                        setTitleColor(color);
+                      }}
                     />
                   </Box>
 
@@ -479,12 +473,10 @@ export default function EditAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={subtitleColor}
-                      onChange={setSubtitleColor}
-                    />
-                    <input
-                      type="hidden"
-                      name="subtitleColor"
-                      value={convertHsvaToHex(subtitleColor)}
+                      onChange={(color) => {
+                        console.log('Subtitle color changed:', color);
+                        setSubtitleColor(color);
+                      }}
                     />
                   </Box>
 
@@ -494,12 +486,10 @@ export default function EditAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={discountCodeColor}
-                      onChange={setDiscountCodeColor}
-                    />
-                    <input
-                      type="hidden"
-                      name="discountCodeColor"
-                      value={convertHsvaToHex(discountCodeColor)}
+                      onChange={(color) => {
+                        console.log('Discount code color changed:', color);
+                        setDiscountCodeColor(color);
+                      }}
                     />
                   </Box>
 
@@ -511,12 +501,10 @@ export default function EditAnnouncementBar() {
                         </Text>
                         <ColorPicker
                           color={buttonColor}
-                          onChange={setButtonColor}
-                        />
-                        <input
-                          type="hidden"
-                          name="buttonColor"
-                          value={convertHsvaToHex(buttonColor)}
+                          onChange={(color) => {
+                            console.log('Button color changed:', color);
+                            setButtonColor(color);
+                          }}
                         />
                       </Box>
 
@@ -534,12 +522,10 @@ export default function EditAnnouncementBar() {
                         </Text>
                         <ColorPicker
                           color={buttonTextColor}
-                          onChange={setButtonTextColor}
-                        />
-                        <input
-                          type="hidden"
-                          name="buttonTextColor"
-                          value={convertHsvaToHex(buttonTextColor)}
+                          onChange={(color) => {
+                            console.log('Button text color changed:', color);
+                            setButtonTextColor(color);
+                          }}
                         />
                       </Box>
 

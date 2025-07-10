@@ -375,7 +375,10 @@ export default function NewAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={borderColor}
-                      onChange={setBorderColor}
+                      onChange={(color) => {
+                        console.log('Border color changed:', color);
+                        setBorderColor(color);
+                      }}
                     />
                   </Box>
 
@@ -401,7 +404,10 @@ export default function NewAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={titleColor}
-                      onChange={setTitleColor}
+                      onChange={(color) => {
+                        console.log('Title color changed:', color);
+                        setTitleColor(color);
+                      }}
                     />
                   </Box>
 
@@ -419,7 +425,10 @@ export default function NewAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={subtitleColor}
-                      onChange={setSubtitleColor}
+                      onChange={(color) => {
+                        console.log('Subtitle color changed:', color);
+                        setSubtitleColor(color);
+                      }}
                     />
                   </Box>
 
@@ -429,7 +438,10 @@ export default function NewAnnouncementBar() {
                     </Text>
                     <ColorPicker
                       color={discountCodeColor}
-                      onChange={setDiscountCodeColor}
+                      onChange={(color) => {
+                        console.log('Discount code color changed:', color);
+                        setDiscountCodeColor(color);
+                      }}
                     />
                   </Box>
 
@@ -441,7 +453,10 @@ export default function NewAnnouncementBar() {
                         </Text>
                         <ColorPicker
                           color={buttonColor}
-                          onChange={setButtonColor}
+                          onChange={(color) => {
+                            console.log('Button color changed:', color);
+                            setButtonColor(color);
+                          }}
                         />
                       </Box>
 
@@ -459,7 +474,10 @@ export default function NewAnnouncementBar() {
                         </Text>
                         <ColorPicker
                           color={buttonTextColor}
-                          onChange={setButtonTextColor}
+                          onChange={(color) => {
+                            console.log('Button text color changed:', color);
+                            setButtonTextColor(color);
+                          }}
                         />
                       </Box>
 
