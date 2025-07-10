@@ -581,6 +581,31 @@ export default function NewAnnouncementBar() {
                       )}
                     </div>
                   )}
+
+                  {displayLocation === "custom" && (
+                    <div style={{ 
+                      padding: "12px 16px", 
+                      backgroundColor: "#fef7e0", 
+                      borderRadius: "8px",
+                      border: "1px solid #f1c40f"
+                    }}>
+                      <Text as="p" variant="bodyMd" fontWeight="medium">
+                        Custom Positioning Instructions
+                      </Text>
+                      <Text as="p" variant="bodySm" style={{ marginTop: "8px" }}>
+                        1. After creating this announcement bar, note its unique ID
+                      </Text>
+                      <Text as="p" variant="bodySm">
+                        2. Go to your theme customizer
+                      </Text>
+                      <Text as="p" variant="bodySm">
+                        3. Add the "Announcement Bar" app block where you want it to appear
+                      </Text>
+                      <Text as="p" variant="bodySm">
+                        4. Enter the announcement bar ID in the block settings
+                      </Text>
+                    </div>
+                  )}
                 </FormLayout>
 
                 <Divider />

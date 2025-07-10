@@ -32,6 +32,9 @@ export default function AnnouncementBarsIndex() {
 
   const rows = announcementBars.map((bar) => [
     bar.name,
+    <Text as="span" variant="bodySm" fontWeight="medium" color="subdued">
+      {bar.id}
+    </Text>,
     bar.announcementType,
     bar.isPublished ? (
       <Badge status="success">Published</Badge>
@@ -89,6 +92,7 @@ export default function AnnouncementBarsIndex() {
               <DataTable
                 columnContentTypes={[
                   "text",
+                  "text",
                   "text", 
                   "text",
                   "text",
@@ -97,6 +101,7 @@ export default function AnnouncementBarsIndex() {
                 ]}
                 headings={[
                   "Name",
+                  "ID",
                   "Type",
                   "Status",
                   "Active",

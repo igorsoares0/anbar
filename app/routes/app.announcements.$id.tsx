@@ -334,6 +334,23 @@ export default function EditAnnouncementBar() {
           <Form method="post">
             <Card>
               <BlockStack gap="500">
+                <div style={{ 
+                  padding: "12px 16px", 
+                  backgroundColor: "#f6f6f7", 
+                  borderRadius: "8px",
+                  border: "1px solid #e1e3e5"
+                }}>
+                  <Text as="p" variant="bodyMd" fontWeight="medium">
+                    Announcement Bar ID: 
+                  </Text>
+                  <Text as="p" variant="bodySm" color="subdued" style={{ fontFamily: "monospace", marginTop: "4px" }}>
+                    {announcementBar.id}
+                  </Text>
+                  <Text as="p" variant="bodySm" color="subdued" style={{ marginTop: "4px" }}>
+                    Use this ID in the theme app block for custom positioning
+                  </Text>
+                </div>
+
                 <Text as="h2" variant="headingLg">
                   Content
                 </Text>
@@ -628,6 +645,28 @@ export default function EditAnnouncementBar() {
                           </Text>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {displayLocation === "custom" && (
+                    <div style={{ 
+                      padding: "12px 16px", 
+                      backgroundColor: "#fef7e0", 
+                      borderRadius: "8px",
+                      border: "1px solid #f1c40f"
+                    }}>
+                      <Text as="p" variant="bodyMd" fontWeight="medium">
+                        Custom Positioning Instructions
+                      </Text>
+                      <Text as="p" variant="bodySm" style={{ marginTop: "8px" }}>
+                        1. Go to your theme customizer
+                      </Text>
+                      <Text as="p" variant="bodySm">
+                        2. Add the "Announcement Bar" app block where you want it to appear
+                      </Text>
+                      <Text as="p" variant="bodySm">
+                        3. Enter this ID in the block settings: <strong style={{ fontFamily: "monospace" }}>{announcementBar.id}</strong>
+                      </Text>
                     </div>
                   )}
                 </FormLayout>
