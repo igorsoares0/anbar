@@ -315,6 +315,28 @@ export default function EditAnnouncementBar() {
               max-height: none !important;
             }
           }
+          
+          .preview-continuous {
+            overflow: hidden !important;
+            white-space: nowrap !important;
+            position: relative !important;
+          }
+          
+          .preview-continuous .preview-content {
+            display: inline-block !important;
+            white-space: nowrap !important;
+            animation: preview-marquee 15s linear infinite !important;
+            padding-left: 100% !important;
+          }
+          
+          @keyframes preview-marquee {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+          }
+          
+          .preview-continuous:hover .preview-content {
+            animation-play-state: paused !important;
+          }
         `
       }} />
     <Page>
@@ -772,6 +794,7 @@ export default function EditAnnouncementBar() {
                 borderRadius="200"
               >
                 <div
+                  className={announcementType === "continuous" ? "preview-continuous" : ""}
                   style={{
                     backgroundColor: convertHsvaToHex(backgroundColor),
                     borderRadius: `${borderRadius}px`,
@@ -783,7 +806,10 @@ export default function EditAnnouncementBar() {
                     fontFamily: fontFamily,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div 
+                    className={announcementType === "continuous" ? "preview-content" : ""}
+                    style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                  >
                     {title && (
                       <span
                         style={{
