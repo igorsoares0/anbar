@@ -3,7 +3,7 @@
 client_id = "4d36bf6cef9a57c0a1365018b03816d8"
 name = "anbar"
 handle = "anbar-1"
-application_url = "https://appropriations-sara-replaced-blogs.trycloudflare.com"
+application_url = "https://mall-cop-stat-advertisement.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,7 +26,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://appropriations-sara-replaced-blogs.trycloudflare.com/auth/callback", "https://appropriations-sara-replaced-blogs.trycloudflare.com/auth/shopify/callback", "https://appropriations-sara-replaced-blogs.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://mall-cop-stat-advertisement.trycloudflare.com/auth/callback", "https://mall-cop-stat-advertisement.trycloudflare.com/auth/shopify/callback", "https://mall-cop-stat-advertisement.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

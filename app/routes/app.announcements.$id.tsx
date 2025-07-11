@@ -19,6 +19,7 @@ import {
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import { syncAnnouncementBarsToMetafields } from "../utils/syncAnnouncementBars.server";
 import { useState, useCallback, useEffect } from "react";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -37,7 +38,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const { id } = params;
   const formData = await request.formData();
 
@@ -47,6 +48,13 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     await prisma.announcementBar.delete({
       where: { id, shop: session.shop },
     });
+    
+    // Automatically sync after deletion
+    const syncResult = await syncAnnouncementBarsToMetafields(session, admin);
+    if (!syncResult.success) {
+      console.warn("Failed to sync announcement bars after deletion:", syncResult.error);
+    }
+    
     return redirect("/app/announcements");
   }
 
@@ -60,6 +68,12 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
         where: { id },
         data: { isActive: !announcementBar.isActive },
       });
+      
+      // Automatically sync after toggle
+      const syncResult = await syncAnnouncementBarsToMetafields(session, admin);
+      if (!syncResult.success) {
+        console.warn("Failed to sync announcement bars after toggle:", syncResult.error);
+      }
     }
     return json({ success: true });
   }
@@ -97,6 +111,12 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
         isPublished: formData.get("isPublished") === "on",
       },
     });
+
+    // Automatically sync after update
+    const syncResult = await syncAnnouncementBarsToMetafields(session, admin);
+    if (!syncResult.success) {
+      console.warn("Failed to sync announcement bars after update:", syncResult.error);
+    }
 
     return json({ success: true });
   } catch (error) {

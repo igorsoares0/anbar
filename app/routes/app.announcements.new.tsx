@@ -20,6 +20,7 @@ import {
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import { syncAnnouncementBarsToMetafields } from "../utils/syncAnnouncementBars.server";
 import { useState, useCallback, useEffect } from "react";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -28,7 +29,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const formData = await request.formData();
 
   try {
@@ -64,6 +65,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         isPublished: formData.get("isPublished") === "on",
       },
     });
+
+    // Automatically sync to theme metafields
+    const syncResult = await syncAnnouncementBarsToMetafields(session, admin);
+    if (!syncResult.success) {
+      console.warn("Failed to sync announcement bars after creation:", syncResult.error);
+    }
 
     return redirect(`/app/announcements/${announcementBar.id}`);
   } catch (error) {
