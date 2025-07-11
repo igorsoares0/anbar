@@ -85,15 +85,23 @@ Description: Displays an announcement bar with customizable styling and content
   .anbar-continuous {
     overflow: hidden;
     white-space: nowrap;
+    position: relative;
   }
   
   .anbar-continuous .anbar-content {
-    animation: anbar-scroll 20s linear infinite;
+    display: inline-block;
+    white-space: nowrap;
+    animation: anbar-marquee 15s linear infinite;
+    padding-left: 100%;
   }
   
-  @keyframes anbar-scroll {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
+  @keyframes anbar-marquee {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-100%, 0, 0); }
+  }
+  
+  .anbar-continuous:hover .anbar-content {
+    animation-play-state: paused;
   }
   
   .anbar-multiple {
@@ -134,6 +142,7 @@ Description: Displays an announcement bar with customizable styling and content
     .anbar-continuous .anbar-content {
       flex-direction: row;
       margin-bottom: 0;
+      animation: anbar-marquee 12s linear infinite;
     }
   }
 </style>
