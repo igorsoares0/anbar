@@ -776,6 +776,20 @@ export default function EditAnnouncementBar() {
                     Save changes
                   </Button>
                   <Button url="/app/announcements">Cancel</Button>
+                  <Button 
+                    variant="primary"
+                    tone="critical"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (confirm(`Are you sure you want to delete "${announcementBar.name}"? This action cannot be undone.`)) {
+                        const formData = new FormData();
+                        formData.append("_action", "delete");
+                        submit(formData, { method: "post" });
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
                 </ButtonGroup>
               </BlockStack>
             </Card>

@@ -88,29 +88,45 @@ export default function AnnouncementBarsIndex() {
               </EmptyState>
             </Card>
           ) : (
-            <Card padding="0">
-              <DataTable
-                columnContentTypes={[
-                  "text",
-                  "text",
-                  "text", 
-                  "text",
-                  "text",
-                  "text",
-                  "text",
-                ]}
-                headings={[
-                  "Name",
-                  "ID",
-                  "Type",
-                  "Status",
-                  "Active",
-                  "Created",
-                  "Actions",
-                ]}
-                rows={rows}
-              />
-            </Card>
+            <>
+              <Card>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                  <Text as="h2" variant="headingMd">
+                    Your Announcement Bars ({announcementBars.length})
+                  </Text>
+                  <Button 
+                    variant="primary" 
+                    url="/app/announcements/new"
+                    size="large"
+                  >
+                    Create New Announcement Bar
+                  </Button>
+                </div>
+              </Card>
+              <Card padding="0">
+                <DataTable
+                  columnContentTypes={[
+                    "text",
+                    "text",
+                    "text", 
+                    "text",
+                    "text",
+                    "text",
+                    "text",
+                  ]}
+                  headings={[
+                    "Name",
+                    "ID",
+                    "Type",
+                    "Status",
+                    "Active",
+                    "Created",
+                    "Actions",
+                  ]}
+                  rows={rows}
+                />
+              </Card>
+            </>
           )}
         </Layout.Section>
       </Layout>
