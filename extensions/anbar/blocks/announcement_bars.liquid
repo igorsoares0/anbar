@@ -186,7 +186,7 @@ Description: Automatically displays active announcement bars based on their loca
             {%- assign show_bar = true -%}
           {%- endif -%}
         {%- when 'cart' -%}
-          {%- if template.name == 'cart' and bar.position == 'top' -%}
+          {%- if template.name == 'cart' -%}
             {%- assign show_bar = true -%}
           {%- endif -%}
         {%- when 'all_collections' -%}
@@ -386,6 +386,20 @@ Description: Automatically displays active announcement bars based on their loca
     window.addEventListener('resize', adjustBodyPadding);
   });
 </script>
+
+<!-- Embed cart drawer HTML for JavaScript access -->
+<div id="anbar-cart-drawer-html" style="display: none;">
+  {% render 'announcement-bars-cart-drawer' %}
+</div>
+
+<!-- Include cart drawer injector for cart page announcements -->
+{% render 'cart-drawer-injector' %}
+
+<!-- Include test utilities if debug mode is enabled -->
+{% if request.url contains 'anbar_debug=1' %}
+  {% render 'cart-drawer-test' %}
+  {% render 'cart-drawer-debug' %}
+{% endif %}
 
 {% schema %}
 {

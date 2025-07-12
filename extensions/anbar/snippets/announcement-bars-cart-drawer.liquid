@@ -1,0 +1,118 @@
+{% comment %}
+Theme: Announcement Bars for Cart Drawer
+Description: Renders announcement bars for injection into cart drawers via JavaScript
+{% endcomment %}
+
+{%- assign announcement_bars = shop.metafields.anbar.bars.value -%}
+{%- if announcement_bars -%}
+  {%- for bar in announcement_bars -%}
+    {%- if bar.isActive and bar.isPublished and bar.displayLocation == 'cart' -%}
+      <div class="anbar-cart-drawer-container" 
+           id="anbar-cart-drawer-{{ bar.id }}"
+           data-bar-id="{{ bar.id }}"
+           style="
+             background-color: {{ bar.backgroundColor }} !important;
+             border-radius: {{ bar.borderRadius }}px !important;
+             border: {{ bar.borderWidth }}px solid {{ bar.borderColor }} !important;
+             font-family: {{ bar.fontFamily }} !important;
+             padding: 12px 16px !important;
+             margin: 0 0 16px 0 !important;
+             position: relative !important;
+             display: flex !important;
+             align-items: center !important;
+             justify-content: space-between !important;
+             width: 100% !important;
+             box-sizing: border-box !important;
+             visibility: visible !important;
+             opacity: 1 !important;
+             z-index: 100 !important;
+             min-height: 40px !important;
+           ">
+        
+        {%- assign wrapper_element = 'div' -%}
+        {%- assign wrapper_attrs = '' -%}
+        
+        {%- if bar.callToAction == 'full_bar' and bar.link != blank -%}
+          {%- assign wrapper_element = 'a' -%}
+          {%- assign wrapper_attrs = 'href="' | append: bar.link | append: '" style="text-decoration: none; color: inherit; display: flex; align-items: center; justify-content: space-between; width: 100%;"' -%}
+        {%- endif -%}
+        
+        <{{ wrapper_element }} 
+          {% if wrapper_attrs != blank %}{{ wrapper_attrs }}{% endif %}
+          class="anbar-cart-drawer-content{% if bar.announcementType == 'continuous' %} anbar-continuous{% elsif bar.announcementType == 'multiple' %} anbar-multiple{% endif %}"
+          style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          
+          <div class="anbar-content" style="display: flex !important; align-items: center !important; gap: 8px !important; flex: 1 !important;">
+            {%- if bar.title != blank -%}
+              <span class="anbar-title" style="
+                font-size: {{ bar.titleSize }}px !important;
+                color: {{ bar.titleColor }} !important;
+                font-weight: bold !important;
+                margin: 0 !important;
+                display: inline !important;
+                visibility: visible !important;
+              ">{{ bar.title }}</span>
+            {%- endif -%}
+            
+            {%- if bar.subtitle != blank -%}
+              <span class="anbar-subtitle" style="
+                font-size: {{ bar.subtitleSize }}px !important;
+                color: {{ bar.subtitleColor }} !important;
+                margin: 0 !important;
+                display: inline !important;
+                visibility: visible !important;
+              ">{{ bar.subtitle }}</span>
+            {%- endif -%}
+            
+            {%- if bar.discountCode != blank -%}
+              <span class="anbar-discount-code" style="
+                font-size: {{ bar.titleSize }}px !important;
+                color: {{ bar.discountCodeColor }} !important;
+                font-weight: bold !important;
+                text-decoration: underline !important;
+                margin: 0 !important;
+                display: inline !important;
+                visibility: visible !important;
+              ">{{ bar.discountCode }}</span>
+            {%- endif -%}
+          </div>
+          
+          <div class="anbar-actions" style="display: flex !important; align-items: center !important; gap: 8px !important;">
+            {%- if bar.callToAction == 'button' and bar.link != blank -%}
+              <a href="{{ bar.link }}" 
+                 class="anbar-button"
+                 style="
+                   background-color: {{ bar.buttonColor }};
+                   color: {{ bar.buttonTextColor }};
+                   font-size: {{ bar.buttonTextSize }}px;
+                   border-radius: {{ bar.buttonBorderRadius }}px;
+                   border: none;
+                   cursor: pointer;
+                   text-decoration: none;
+                   display: inline-block;
+                   padding: 6px 12px;
+                   transition: opacity 0.2s ease;
+                 ">Shop Now</a>
+            {%- endif -%}
+            
+            {%- if bar.showCloseIcon -%}
+              <button class="anbar-close" 
+                      data-anbar-close="{{ bar.id }}"
+                      style="
+                        color: {{ bar.titleColor }};
+                        cursor: pointer;
+                        font-size: 18px;
+                        line-height: 1;
+                        background: none;
+                        border: none;
+                        padding: 0;
+                        margin: 0;
+                        transition: opacity 0.2s ease;
+                      ">×</button>
+            {%- endif -%}
+          </div>
+        </{{ wrapper_element }}>
+      </div>
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}

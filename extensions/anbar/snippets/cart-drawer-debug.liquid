@@ -1,0 +1,332 @@
+{% comment %}
+Theme: Cart Drawer Debug Helper
+Description: Advanced debugging for cart drawer announcement bar injection
+{% endcomment %}
+
+<script>
+(function() {
+  'use strict';
+  
+  // Debug utilities
+  window.anbarDebug = {
+    // Test injection with a simple test bar
+    injectTestBar: function() {
+      const testHTML = `
+        <div style="
+          background: red !important;
+          color: white !important;
+          padding: 15px !important;
+          margin: 10px 0 !important;
+          border: 2px solid yellow !important;
+          font-size: 16px !important;
+          font-weight: bold !important;
+          text-align: center !important;
+          z-index: 9999 !important;
+          position: relative !important;
+          display: block !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
+        ">
+          🚨 TEST ANNOUNCEMENT BAR - THIS SHOULD BE VISIBLE! 🚨
+        </div>
+      `;
+      
+      const cartDrawer = document.querySelector('.slidecarthq');
+      if (cartDrawer) {
+        const header = cartDrawer.querySelector('.header');
+        if (header) {
+          const testContainer = document.createElement('div');
+          testContainer.className = 'anbar-test-wrapper';
+          testContainer.innerHTML = testHTML;
+          header.insertAdjacentElement('afterend', testContainer);
+          console.log('✅ Test bar injected after header');
+          return true;
+        } else {
+          console.log('❌ No header found in cart drawer');
+        }
+      } else {
+        console.log('❌ No SlideCartHQ cart drawer found');
+      }
+      return false;
+    },
+    
+    // Direct injection bypassing all detection logic
+    directInject: function() {
+      console.log('🎯 Direct injection to SlideCartHQ...');
+      
+      // Find the exact SlideCartHQ cart drawer
+      const cartDrawer = document.querySelector('.slidecarthq.open');
+      if (!cartDrawer) {
+        console.log('❌ No open SlideCartHQ found');
+        return false;
+      }
+      
+      console.log('✅ Found SlideCartHQ:', cartDrawer);
+      
+      // Find header
+      const header = cartDrawer.querySelector('.header');
+      if (!header) {
+        console.log('❌ No header found in SlideCartHQ');
+        return false;
+      }
+      
+      console.log('✅ Found header:', header);
+      
+      // Get announcement HTML
+      const htmlElement = document.getElementById('anbar-cart-drawer-html');
+      if (!htmlElement) {
+        console.log('❌ No announcement HTML element found');
+        return this.injectTestBar();
+      }
+      
+      const html = htmlElement.innerHTML;
+      if (!html.trim()) {
+        console.log('❌ Announcement HTML is empty');
+        return this.injectTestBar();
+      }
+      
+      console.log('✅ Found announcement HTML, length:', html.length);
+      
+      // Remove any existing bars
+      cartDrawer.querySelectorAll('.anbar-cart-drawer-wrapper, .anbar-test-wrapper').forEach(el => el.remove());
+      
+      // Create container
+      const container = document.createElement('div');
+      container.className = 'anbar-cart-drawer-wrapper anbar-direct-inject';
+      container.style.cssText = `
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        width: 100% !important;
+        z-index: 1000 !important;
+        border: 3px solid blue !important;
+        background: rgba(0,255,0,0.1) !important;
+      `;
+      container.innerHTML = html;
+      
+      // Direct injection after header
+      try {
+        header.insertAdjacentElement('afterend', container);
+        
+        // Verify
+        const isInside = cartDrawer.contains(container);
+        console.log('✅ Direct injection successful, inside drawer:', isInside);
+        
+        if (!isInside) {
+          console.log('🔧 Moving container inside drawer...');
+          container.remove();
+          cartDrawer.insertBefore(container, cartDrawer.children[1] || null);
+          const isInsideNow = cartDrawer.contains(container);
+          console.log('✅ Container moved inside:', isInsideNow);
+        }
+        
+        // Set up close button event listeners for debug injection
+        const closeButtons = container.querySelectorAll('[data-anbar-close]');
+        closeButtons.forEach(button => {
+          const barId = button.getAttribute('data-anbar-close');
+          if (barId) {
+            button.addEventListener('click', () => {
+              console.log('🔘 Close button clicked for bar:', barId);
+              const bar = document.getElementById('anbar-cart-drawer-' + barId);
+              if (bar) {
+                bar.style.display = 'none';
+                sessionStorage.setItem('anbar-cart-drawer-closed-' + barId, 'true');
+              }
+            });
+          }
+        });
+        
+        return true;
+      } catch (error) {
+        console.error('❌ Direct injection failed:', error);
+        return false;
+      }
+    },
+    
+    // Check what announcement HTML is available
+    checkAnnouncementHTML: function() {
+      const htmlElement = document.getElementById('anbar-cart-drawer-html');
+      if (htmlElement) {
+        const html = htmlElement.innerHTML;
+        console.log('📄 Available announcement HTML length:', html.length);
+        console.log('📄 HTML content preview:', html.substring(0, 200) + (html.length > 200 ? '...' : ''));
+        console.log('📄 Full HTML:', html);
+        return html;
+      } else {
+        console.log('❌ No anbar-cart-drawer-html element found');
+        return '';
+      }
+    },
+    
+    // Analyze cart drawer structure
+    analyzeCartDrawer: function() {
+      const cartDrawer = document.querySelector('.slidecarthq');
+      if (cartDrawer) {
+        console.log('🔍 Cart drawer found:', cartDrawer);
+        console.log('🔍 Cart drawer classes:', cartDrawer.className);
+        console.log('🔍 Cart drawer style:', cartDrawer.style.cssText);
+        
+        const header = cartDrawer.querySelector('.header');
+        const items = cartDrawer.querySelector('.items');
+        const footer = cartDrawer.querySelector('.footer');
+        
+        console.log('🔍 Header element:', header);
+        console.log('🔍 Items element:', items);
+        console.log('🔍 Footer element:', footer);
+        
+        // Check for existing announcement bars
+        const existingBars = cartDrawer.querySelectorAll('.anbar-cart-drawer-wrapper, .anbar-test-wrapper');
+        console.log('🔍 Existing announcement containers:', existingBars.length);
+        existingBars.forEach((bar, index) => {
+          console.log(`  [${index}] ${bar.className}:`, bar);
+        });
+        
+        return {
+          cartDrawer,
+          header,
+          items,
+          footer,
+          existingBars: existingBars.length
+        };
+      } else {
+        console.log('❌ No SlideCartHQ cart drawer found');
+        return null;
+      }
+    },
+    
+    // Force inject with debugging
+    forceInject: function() {
+      console.log('🚀 Starting force injection...');
+      
+      // Step 1: Check HTML content
+      const html = this.checkAnnouncementHTML();
+      if (!html.trim()) {
+        console.log('⚠️ No announcement HTML found, using test content');
+        return this.injectTestBar();
+      }
+      
+      // Step 2: Analyze cart drawer
+      const analysis = this.analyzeCartDrawer();
+      if (!analysis) {
+        return false;
+      }
+      
+      // Step 3: Remove existing bars
+      const existingBars = document.querySelectorAll('.anbar-cart-drawer-wrapper, .anbar-test-wrapper');
+      existingBars.forEach(bar => bar.remove());
+      console.log('🧹 Removed', existingBars.length, 'existing bars');
+      
+      // Step 4: Create and inject
+      const container = document.createElement('div');
+      container.className = 'anbar-cart-drawer-wrapper';
+      container.style.cssText = `
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        z-index: 1000 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 2px solid lime !important;
+      `;
+      container.innerHTML = html;
+      
+      // Step 5: Inject after header INSIDE the cart drawer
+      try {
+        console.log('🎯 Injecting after header:', analysis.header);
+        console.log('🎯 Cart drawer:', analysis.cartDrawer);
+        
+        // First, try inserting after header
+        analysis.header.insertAdjacentElement('afterend', container);
+        
+        // Verify it's inside the cart drawer
+        const isInside = analysis.cartDrawer.contains(container);
+        console.log('📍 Container is inside cart drawer:', isInside);
+        
+        if (!isInside) {
+          console.log('🔧 Container outside drawer, moving it inside...');
+          container.remove();
+          
+          // Insert directly as second child of cart drawer (after header)
+          if (analysis.cartDrawer.children.length > 1) {
+            analysis.cartDrawer.insertBefore(container, analysis.cartDrawer.children[1]);
+          } else {
+            analysis.cartDrawer.appendChild(container);
+          }
+          
+          const isInsideNow = analysis.cartDrawer.contains(container);
+          console.log('📍 Container now inside cart drawer:', isInsideNow);
+        }
+        
+        console.log('✅ Announcement bar force-injected successfully');
+        
+        // Step 6: Verify injection
+        setTimeout(() => {
+          const injectedBar = document.querySelector('.anbar-cart-drawer-wrapper');
+          if (injectedBar) {
+            const isInsideDrawer = analysis.cartDrawer.contains(injectedBar);
+            console.log('✅ Verification: Bar is present in DOM and inside drawer:', isInsideDrawer);
+            console.log('📐 Bar dimensions:', {
+              width: injectedBar.offsetWidth,
+              height: injectedBar.offsetHeight,
+              display: getComputedStyle(injectedBar).display,
+              visibility: getComputedStyle(injectedBar).visibility,
+              parent: injectedBar.parentElement?.className
+            });
+          } else {
+            console.log('❌ Verification: Bar not found in DOM');
+          }
+        }, 100);
+        
+        return true;
+      } catch (error) {
+        console.error('❌ Force injection failed:', error);
+        return false;
+      }
+    },
+    
+    // Full diagnostic
+    runFullDiagnostic: function() {
+      console.log('🔧 === ANBAR CART DRAWER FULL DIAGNOSTIC ===');
+      console.log('1. Checking announcement HTML...');
+      this.checkAnnouncementHTML();
+      
+      console.log('2. Analyzing cart drawer structure...');
+      this.analyzeCartDrawer();
+      
+      console.log('3. Checking if main injector is available...');
+      if (window.anbarCartDrawer) {
+        console.log('✅ Main injector available');
+        console.log('📊 Is injected:', window.anbarCartDrawer.isInjected());
+      } else {
+        console.log('❌ Main injector not available');
+      }
+      
+      console.log('4. Testing force injection...');
+      this.forceInject();
+      
+      console.log('🔧 === DIAGNOSTIC COMPLETE ===');
+    }
+  };
+  
+  // Auto-run on debug mode
+  if (window.location.search.includes('anbar_debug=1')) {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        window.anbarDebug.runFullDiagnostic();
+      }, 2000);
+    });
+  }
+  
+  // Add manual triggers
+  console.log('🔧 Anbar Debug Tools loaded:');
+  console.log('- anbarDebug.directInject() - ⭐ Direct injection to SlideCartHQ (RECOMMENDED)');
+  console.log('- anbarDebug.injectTestBar() - Inject a simple test bar');
+  console.log('- anbarDebug.runFullDiagnostic() - Run complete analysis');
+  console.log('- anbarDebug.forceInject() - Force inject real announcements');
+  console.log('- anbarDebug.analyzeCartDrawer() - Analyze cart structure');
+  
+})();
+</script>

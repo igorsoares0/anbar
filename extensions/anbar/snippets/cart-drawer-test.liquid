@@ -1,0 +1,135 @@
+{% comment %}
+Theme: Cart Drawer Test Helper
+Description: Debugging and testing utilities for cart drawer announcement bar integration
+{% endcomment %}
+
+<script>
+(function() {
+  'use strict';
+  
+  // Test utilities for cart drawer announcement bars
+  window.anbarCartDrawerTest = {
+    // Test if announcement bars exist for cart
+    hasCartAnnouncements: function() {
+      const cartBars = document.querySelectorAll('[data-bar-id]');
+      const cartAnnouncementBars = Array.from(cartBars).filter(bar => {
+        // Check if this bar is for cart location
+        return bar.closest('.anbar-cart-drawer-wrapper') !== null;
+      });
+      return cartAnnouncementBars.length > 0;
+    },
+    
+    // Find all possible cart drawer selectors on the page
+    findCartDrawers: function() {
+      const selectors = [
+        '[data-cart-drawer]',
+        '.cart-drawer',
+        '#cart-drawer',
+        '.drawer__cart',
+        '.js-drawer-content',
+        '.cart-drawer__content',
+        '.cart-sidebar',
+        '#CartDrawer',
+        '.cart__drawer',
+        '.mini-cart',
+        '#mini-cart',
+        '.side-cart',
+        '#side-cart',
+        'cart-drawer',
+        '#cart-notification',
+        '.cart-notification'
+      ];
+      
+      const found = [];
+      selectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+          found.push({
+            selector: selector,
+            element: el,
+            visible: el.offsetWidth > 0 && el.offsetHeight > 0
+          });
+        });
+      });
+      
+      return found;
+    },
+    
+    // Check if cart drawer is currently visible
+    isCartDrawerVisible: function() {
+      const drawers = this.findCartDrawers();
+      return drawers.some(drawer => drawer.visible);
+    },
+    
+    // Manually trigger announcement bar injection
+    inject: function() {
+      if (window.anbarCartDrawer) {
+        window.anbarCartDrawer.inject();
+        console.log('Anbar Test: Manual injection triggered');
+      } else {
+        console.log('Anbar Test: Cart drawer injector not found');
+      }
+    },
+    
+    // Force show cart drawer for testing
+    forceShowCartDrawer: function() {
+      const drawers = this.findCartDrawers();
+      if (drawers.length > 0) {
+        const drawer = drawers[0].element;
+        drawer.style.display = 'block';
+        drawer.style.visibility = 'visible';
+        drawer.style.opacity = '1';
+        drawer.classList.remove('hidden');
+        drawer.removeAttribute('hidden');
+        
+        setTimeout(() => {
+          this.inject();
+        }, 100);
+        
+        console.log('Anbar Test: Forced cart drawer visibility');
+      } else {
+        console.log('Anbar Test: No cart drawers found');
+      }
+    },
+    
+    // Run comprehensive test
+    runTest: function() {
+      console.log('=== Anbar Cart Drawer Test ===');
+      console.log('1. Cart announcements exist:', this.hasCartAnnouncements());
+      console.log('2. Cart drawers found:', this.findCartDrawers().length);
+      console.log('3. Cart drawer visible:', this.isCartDrawerVisible());
+      console.log('4. Injector available:', !!window.anbarCartDrawer);
+      
+      if (window.anbarCartDrawer) {
+        console.log('5. Already injected:', window.anbarCartDrawer.isInjected());
+      }
+      
+      // Show all found drawers
+      const drawers = this.findCartDrawers();
+      console.log('6. Cart drawer details:');
+      drawers.forEach((drawer, index) => {
+        console.log(`   [${index}] ${drawer.selector}:`, {
+          visible: drawer.visible,
+          display: drawer.element.style.display,
+          classes: drawer.element.className
+        });
+      });
+      
+      console.log('=== End Test ===');
+    }
+  };
+  
+  // Auto-run test when debug parameter is present
+  if (window.location.search.includes('anbar_debug=1')) {
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        window.anbarCartDrawerTest.runTest();
+      }, 1000);
+    });
+  }
+  
+})();
+
+// Add console helper
+console.log('Anbar Cart Drawer Test utilities loaded. Use anbarCartDrawerTest.runTest() to diagnose issues.');
+</script>
