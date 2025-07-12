@@ -10,8 +10,10 @@ Description: Automatically displays active announcement bars based on their loca
   }
   
   .anbar-embed-top {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
   }
   
@@ -21,6 +23,16 @@ Description: Automatically displays active announcement bars based on their loca
     left: 0;
     right: 0;
     z-index: 1000;
+  }
+  
+  .anbar-embed-cart {
+    position: relative;
+    z-index: 100;
+  }
+  
+  .anbar-embed-custom {
+    position: relative;
+    z-index: 100;
   }
   
   .anbar-announcement-bar {
@@ -222,7 +234,14 @@ Description: Automatically displays active announcement bars based on their loca
       {%- endcase -%}
       
       {%- if show_bar -%}
-        <div class="anbar-embed-container anbar-embed-{{ bar.position }}" 
+        {%- assign position_class = '' -%}
+        {%- if bar.displayLocation == 'cart' or bar.displayLocation == 'custom' -%}
+          {%- assign position_class = bar.displayLocation -%}
+        {%- else -%}
+          {%- assign position_class = bar.position -%}
+        {%- endif -%}
+        
+        <div class="anbar-embed-container anbar-embed-{{ position_class }}" 
              id="anbar-embed-{{ bar.id }}">
           
           {%- assign wrapper_element = 'div' -%}
@@ -332,31 +351,39 @@ Description: Automatically displays active announcement bars based on their loca
     {%- endif -%}
     
     // Adjust body padding for fixed positioned bars
-    const topBars = document.querySelectorAll('.anbar-embed-top');
-    const bottomBars = document.querySelectorAll('.anbar-embed-bottom');
-    
-    let topHeight = 0;
-    let bottomHeight = 0;
-    
-    topBars.forEach(bar => {
-      if (bar.style.display !== 'none') {
-        topHeight += bar.offsetHeight;
+    function adjustBodyPadding() {
+      const topBars = document.querySelectorAll('.anbar-embed-top');
+      const bottomBars = document.querySelectorAll('.anbar-embed-bottom');
+      
+      let topHeight = 0;
+      let bottomHeight = 0;
+      
+      topBars.forEach(bar => {
+        if (bar.style.display !== 'none') {
+          topHeight += bar.offsetHeight;
+        }
+      });
+      
+      bottomBars.forEach(bar => {
+        if (bar.style.display !== 'none') {
+          bottomHeight += bar.offsetHeight;
+        }
+      });
+      
+      if (topHeight > 0) {
+        document.body.style.paddingTop = topHeight + 'px';
       }
-    });
-    
-    bottomBars.forEach(bar => {
-      if (bar.style.display !== 'none') {
-        bottomHeight += bar.offsetHeight;
+      
+      if (bottomHeight > 0) {
+        document.body.style.paddingBottom = bottomHeight + 'px';
       }
-    });
-    
-    if (topHeight > 0) {
-      document.body.style.paddingTop = topHeight + 'px';
     }
     
-    if (bottomHeight > 0) {
-      document.body.style.paddingBottom = bottomHeight + 'px';
-    }
+    // Initial adjustment
+    adjustBodyPadding();
+    
+    // Re-adjust when window resizes
+    window.addEventListener('resize', adjustBodyPadding);
   });
 </script>
 

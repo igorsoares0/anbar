@@ -3,7 +3,7 @@
 client_id = "4d36bf6cef9a57c0a1365018b03816d8"
 name = "anbar"
 handle = "anbar-1"
-application_url = "https://milwaukee-item-basement-women.trycloudflare.com"
+application_url = "https://grace-eddie-slip-shaped.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,7 +26,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://milwaukee-item-basement-women.trycloudflare.com/auth/callback", "https://milwaukee-item-basement-women.trycloudflare.com/auth/shopify/callback", "https://milwaukee-item-basement-women.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://grace-eddie-slip-shaped.trycloudflare.com/auth/callback", "https://grace-eddie-slip-shaped.trycloudflare.com/auth/shopify/callback", "https://grace-eddie-slip-shaped.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
