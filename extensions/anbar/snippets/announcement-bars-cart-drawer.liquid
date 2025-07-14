@@ -34,7 +34,7 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
         
         {%- if bar.callToAction == 'full_bar' and bar.link != blank -%}
           {%- assign wrapper_element = 'a' -%}
-          {%- assign wrapper_attrs = 'href="' | append: bar.link | append: '" style="text-decoration: none; color: inherit; display: flex; align-items: center; justify-content: space-between; width: 100%;"' -%}
+          {%- assign wrapper_attrs = 'href="' | append: bar.link | append: '" style="text-decoration: none; color: inherit; background-color: inherit; border: inherit; border-radius: inherit; font-family: inherit; display: flex; align-items: center; justify-content: space-between; width: 100%;"' -%}
         {%- endif -%}
         
         <{{ wrapper_element }} 
