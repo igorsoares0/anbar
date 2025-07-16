@@ -3,7 +3,7 @@
 client_id = "4d36bf6cef9a57c0a1365018b03816d8"
 name = "anbar"
 handle = "anbar-1"
-application_url = "https://occasionally-neural-ray-uw.trycloudflare.com"
+application_url = "https://messenger-prime-preparing-ecommerce.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,7 +26,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://occasionally-neural-ray-uw.trycloudflare.com/auth/callback", "https://occasionally-neural-ray-uw.trycloudflare.com/auth/shopify/callback", "https://occasionally-neural-ray-uw.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://messenger-prime-preparing-ecommerce.trycloudflare.com/auth/callback", "https://messenger-prime-preparing-ecommerce.trycloudflare.com/auth/shopify/callback", "https://messenger-prime-preparing-ecommerce.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

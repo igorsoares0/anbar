@@ -34,15 +34,15 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
         
         {%- if bar.callToAction == 'full_bar' and bar.link != blank -%}
           {%- assign wrapper_element = 'a' -%}
-          {%- assign wrapper_attrs = 'href="' | append: bar.link | append: '" style="text-decoration: none; color: inherit; background-color: inherit; border: inherit; border-radius: inherit; font-family: inherit; display: flex; align-items: center; justify-content: space-between; width: 100%;"' -%}
+          {%- assign wrapper_attrs = 'href="' | append: bar.link | append: '" style="text-decoration: none !important; color: inherit !important; background-color: inherit !important; border: inherit !important; border-radius: inherit !important; font-family: ' | append: bar.fontFamily | append: ' !important; display: flex !important; align-items: center !important; justify-content: space-between !important; width: 100% !important;"' -%}
         {%- endif -%}
         
         <{{ wrapper_element }} 
           {% if wrapper_attrs != blank %}{{ wrapper_attrs }}{% endif %}
           class="anbar-cart-drawer-content{% if bar.announcementType == 'continuous' %} anbar-continuous{% elsif bar.announcementType == 'multiple' %} anbar-multiple{% endif %}"
-          style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          style="display: flex !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; font-family: {{ bar.fontFamily }} !important;">
           
-          <div class="anbar-content" style="display: flex !important; align-items: center !important; gap: 8px !important; flex: 1 !important;">
+          <div class="anbar-content" style="display: flex !important; align-items: center !important; gap: 8px !important; flex: 1 !important; font-family: {{ bar.fontFamily }} !important;">
             {%- if bar.title != blank -%}
               <span class="anbar-title" style="
                 font-size: {{ bar.titleSize }}px !important;
@@ -51,6 +51,7 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
                 margin: 0 !important;
                 display: inline !important;
                 visibility: visible !important;
+                font-family: {{ bar.fontFamily }} !important;
               ">{{ bar.title }}</span>
             {%- endif -%}
             
@@ -61,6 +62,7 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
                 margin: 0 !important;
                 display: inline !important;
                 visibility: visible !important;
+                font-family: {{ bar.fontFamily }} !important;
               ">{{ bar.subtitle }}</span>
             {%- endif -%}
             
@@ -73,6 +75,7 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
                 margin: 0 !important;
                 display: inline !important;
                 visibility: visible !important;
+                font-family: {{ bar.fontFamily }} !important;
               ">{{ bar.discountCode }}</span>
             {%- endif -%}
           </div>
