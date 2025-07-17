@@ -132,6 +132,43 @@ export default function EditAnnouncementBar() {
   const shopify = useAppBridge();
   const isLoading = navigation.state === "submitting";
 
+  // Helper function to convert hex to HSVA
+  const convertHexToHsva = (hex: string) => {
+    // Remove # if present
+    hex = hex.replace('#', '');
+    
+    // Parse RGB values
+    const r = parseInt(hex.substr(0, 2), 16) / 255;
+    const g = parseInt(hex.substr(2, 2), 16) / 255;
+    const b = parseInt(hex.substr(4, 2), 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const diff = max - min;
+
+    // Calculate brightness (value)
+    const v = max;
+
+    // Calculate saturation
+    const s = max === 0 ? 0 : diff / max;
+
+    // Calculate hue
+    let h = 0;
+    if (diff !== 0) {
+      if (max === r) {
+        h = ((g - b) / diff) % 6;
+      } else if (max === g) {
+        h = (b - r) / diff + 2;
+      } else {
+        h = (r - g) / diff + 4;
+      }
+    }
+    h = h * 60;
+    if (h < 0) h += 360;
+
+    return { hue: h, saturation: s, brightness: v, alpha: 1 };
+  };
+
   // Form state initialized with existing data
   const [name, setName] = useState(announcementBar.name);
   const [announcementType, setAnnouncementType] = useState(announcementBar.announcementType);
@@ -142,24 +179,67 @@ export default function EditAnnouncementBar() {
   const [link, setLink] = useState(announcementBar.link || "");
   const [showCloseIcon, setShowCloseIcon] = useState(announcementBar.showCloseIcon);
   const [position, setPosition] = useState(announcementBar.position);
-  const [backgroundColor, setBackgroundColor] = useState(hexToHsva(announcementBar.backgroundColor));
+  const [backgroundColor, setBackgroundColor] = useState(convertHexToHsva(announcementBar.backgroundColor));
+  const [backgroundColorHex, setBackgroundColorHex] = useState(announcementBar.backgroundColor);
+  const [showBackgroundColorPicker, setShowBackgroundColorPicker] = useState(false);
   const [borderRadius, setBorderRadius] = useState(announcementBar.borderRadius);
   const [borderWidth, setBorderWidth] = useState(announcementBar.borderWidth);
-  const [borderColor, setBorderColor] = useState(hexToHsva(announcementBar.borderColor));
+  const [borderColor, setBorderColor] = useState(convertHexToHsva(announcementBar.borderColor));
+  const [borderColorHex, setBorderColorHex] = useState(announcementBar.borderColor);
+  const [showBorderColorPicker, setShowBorderColorPicker] = useState(false);
   const [fontFamily, setFontFamily] = useState(announcementBar.fontFamily);
   const [titleSize, setTitleSize] = useState(announcementBar.titleSize);
-  const [titleColor, setTitleColor] = useState(hexToHsva(announcementBar.titleColor));
+  const [titleColor, setTitleColor] = useState(convertHexToHsva(announcementBar.titleColor));
+  const [titleColorHex, setTitleColorHex] = useState(announcementBar.titleColor);
+  const [showTitleColorPicker, setShowTitleColorPicker] = useState(false);
   const [subtitleSize, setSubtitleSize] = useState(announcementBar.subtitleSize);
-  const [subtitleColor, setSubtitleColor] = useState(hexToHsva(announcementBar.subtitleColor));
-  const [discountCodeColor, setDiscountCodeColor] = useState(hexToHsva(announcementBar.discountCodeColor));
-  const [buttonColor, setButtonColor] = useState(hexToHsva(announcementBar.buttonColor));
+  const [subtitleColor, setSubtitleColor] = useState(convertHexToHsva(announcementBar.subtitleColor));
+  const [subtitleColorHex, setSubtitleColorHex] = useState(announcementBar.subtitleColor);
+  const [showSubtitleColorPicker, setShowSubtitleColorPicker] = useState(false);
+  const [discountCodeColor, setDiscountCodeColor] = useState(convertHexToHsva(announcementBar.discountCodeColor));
+  const [discountCodeColorHex, setDiscountCodeColorHex] = useState(announcementBar.discountCodeColor);
+  const [showDiscountCodeColorPicker, setShowDiscountCodeColorPicker] = useState(false);
+  const [buttonColor, setButtonColor] = useState(convertHexToHsva(announcementBar.buttonColor));
+  const [buttonColorHex, setButtonColorHex] = useState(announcementBar.buttonColor);
+  const [showButtonColorPicker, setShowButtonColorPicker] = useState(false);
   const [buttonTextSize, setButtonTextSize] = useState(announcementBar.buttonTextSize);
-  const [buttonTextColor, setButtonTextColor] = useState(hexToHsva(announcementBar.buttonTextColor));
+  const [buttonTextColor, setButtonTextColor] = useState(convertHexToHsva(announcementBar.buttonTextColor));
+  const [buttonTextColorHex, setButtonTextColorHex] = useState(announcementBar.buttonTextColor);
+  const [showButtonTextColorPicker, setShowButtonTextColorPicker] = useState(false);
   const [buttonBorderRadius, setButtonBorderRadius] = useState(announcementBar.buttonBorderRadius);
   const [displayLocation, setDisplayLocation] = useState(announcementBar.displayLocation);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [selectedCollections, setSelectedCollections] = useState<any[]>([]);
   const [isPublished, setIsPublished] = useState(announcementBar.isPublished);
+
+  // Sync hex values when colors change
+  useEffect(() => {
+    setBackgroundColorHex(convertHsvaToHex(backgroundColor));
+  }, [backgroundColor]);
+
+  useEffect(() => {
+    setBorderColorHex(convertHsvaToHex(borderColor));
+  }, [borderColor]);
+
+  useEffect(() => {
+    setTitleColorHex(convertHsvaToHex(titleColor));
+  }, [titleColor]);
+
+  useEffect(() => {
+    setSubtitleColorHex(convertHsvaToHex(subtitleColor));
+  }, [subtitleColor]);
+
+  useEffect(() => {
+    setDiscountCodeColorHex(convertHsvaToHex(discountCodeColor));
+  }, [discountCodeColor]);
+
+  useEffect(() => {
+    setButtonColorHex(convertHsvaToHex(buttonColor));
+  }, [buttonColor]);
+
+  useEffect(() => {
+    setButtonTextColorHex(convertHsvaToHex(buttonTextColor));
+  }, [buttonTextColor]);
 
   function hexToHsva(hex: string) {
     const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -481,13 +561,40 @@ export default function EditAnnouncementBar() {
                     <Text as="p" variant="bodyMd">
                       Background color
                     </Text>
-                    <ColorPicker
-                      color={backgroundColor}
-                      onChange={(color) => {
-                        console.log('Background color changed:', color);
-                        setBackgroundColor(color);
-                      }}
-                    />
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "36px",
+                          backgroundColor: convertHsvaToHex(backgroundColor),
+                          border: "1px solid #ddd",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setShowBackgroundColorPicker(!showBackgroundColorPicker)}
+                      />
+                      <TextField
+                        value={backgroundColorHex}
+                        onChange={(value) => {
+                          setBackgroundColorHex(value);
+                          if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                            setBackgroundColor(convertHexToHsva(value));
+                          }
+                        }}
+                        placeholder="#8340aa"
+                        connectedLeft
+                      />
+                    </div>
+                    {showBackgroundColorPicker && (
+                      <Box paddingBlockStart="300">
+                        <ColorPicker
+                          color={backgroundColor}
+                          onChange={(color) => {
+                            setBackgroundColor(color);
+                          }}
+                        />
+                      </Box>
+                    )}
                   </Box>
 
                   <TextField
@@ -510,13 +617,40 @@ export default function EditAnnouncementBar() {
                     <Text as="p" variant="bodyMd">
                       Border color
                     </Text>
-                    <ColorPicker
-                      color={borderColor}
-                      onChange={(color) => {
-                        console.log('Border color changed:', color);
-                        setBorderColor(color);
-                      }}
-                    />
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "36px",
+                          backgroundColor: convertHsvaToHex(borderColor),
+                          border: "1px solid #ddd",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setShowBorderColorPicker(!showBorderColorPicker)}
+                      />
+                      <TextField
+                        value={borderColorHex}
+                        onChange={(value) => {
+                          setBorderColorHex(value);
+                          if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                            setBorderColor(convertHexToHsva(value));
+                          }
+                        }}
+                        placeholder="#8340aa"
+                        connectedLeft
+                      />
+                    </div>
+                    {showBorderColorPicker && (
+                      <Box paddingBlockStart="300">
+                        <ColorPicker
+                          color={borderColor}
+                          onChange={(color) => {
+                            setBorderColor(color);
+                          }}
+                        />
+                      </Box>
+                    )}
                   </Box>
 
                   <Select
@@ -539,13 +673,40 @@ export default function EditAnnouncementBar() {
                     <Text as="p" variant="bodyMd">
                       Title color
                     </Text>
-                    <ColorPicker
-                      color={titleColor}
-                      onChange={(color) => {
-                        console.log('Title color changed:', color);
-                        setTitleColor(color);
-                      }}
-                    />
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "36px",
+                          backgroundColor: convertHsvaToHex(titleColor),
+                          border: "1px solid #ddd",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setShowTitleColorPicker(!showTitleColorPicker)}
+                      />
+                      <TextField
+                        value={titleColorHex}
+                        onChange={(value) => {
+                          setTitleColorHex(value);
+                          if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                            setTitleColor(convertHexToHsva(value));
+                          }
+                        }}
+                        placeholder="#8340aa"
+                        connectedLeft
+                      />
+                    </div>
+                    {showTitleColorPicker && (
+                      <Box paddingBlockStart="300">
+                        <ColorPicker
+                          color={titleColor}
+                          onChange={(color) => {
+                            setTitleColor(color);
+                          }}
+                        />
+                      </Box>
+                    )}
                   </Box>
 
                   <TextField
@@ -560,26 +721,80 @@ export default function EditAnnouncementBar() {
                     <Text as="p" variant="bodyMd">
                       Subtitle color
                     </Text>
-                    <ColorPicker
-                      color={subtitleColor}
-                      onChange={(color) => {
-                        console.log('Subtitle color changed:', color);
-                        setSubtitleColor(color);
-                      }}
-                    />
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "36px",
+                          backgroundColor: convertHsvaToHex(subtitleColor),
+                          border: "1px solid #ddd",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setShowSubtitleColorPicker(!showSubtitleColorPicker)}
+                      />
+                      <TextField
+                        value={subtitleColorHex}
+                        onChange={(value) => {
+                          setSubtitleColorHex(value);
+                          if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                            setSubtitleColor(convertHexToHsva(value));
+                          }
+                        }}
+                        placeholder="#8340aa"
+                        connectedLeft
+                      />
+                    </div>
+                    {showSubtitleColorPicker && (
+                      <Box paddingBlockStart="300">
+                        <ColorPicker
+                          color={subtitleColor}
+                          onChange={(color) => {
+                            setSubtitleColor(color);
+                          }}
+                        />
+                      </Box>
+                    )}
                   </Box>
 
                   <Box>
                     <Text as="p" variant="bodyMd">
                       Discount code color
                     </Text>
-                    <ColorPicker
-                      color={discountCodeColor}
-                      onChange={(color) => {
-                        console.log('Discount code color changed:', color);
-                        setDiscountCodeColor(color);
-                      }}
-                    />
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div
+                        style={{
+                          width: "40px",
+                          height: "36px",
+                          backgroundColor: convertHsvaToHex(discountCodeColor),
+                          border: "1px solid #ddd",
+                          borderRadius: "6px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setShowDiscountCodeColorPicker(!showDiscountCodeColorPicker)}
+                      />
+                      <TextField
+                        value={discountCodeColorHex}
+                        onChange={(value) => {
+                          setDiscountCodeColorHex(value);
+                          if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                            setDiscountCodeColor(convertHexToHsva(value));
+                          }
+                        }}
+                        placeholder="#8340aa"
+                        connectedLeft
+                      />
+                    </div>
+                    {showDiscountCodeColorPicker && (
+                      <Box paddingBlockStart="300">
+                        <ColorPicker
+                          color={discountCodeColor}
+                          onChange={(color) => {
+                            setDiscountCodeColor(color);
+                          }}
+                        />
+                      </Box>
+                    )}
                   </Box>
 
                   {callToAction === "button" && (
@@ -588,13 +803,40 @@ export default function EditAnnouncementBar() {
                         <Text as="p" variant="bodyMd">
                           Button color
                         </Text>
-                        <ColorPicker
-                          color={buttonColor}
-                          onChange={(color) => {
-                            console.log('Button color changed:', color);
-                            setButtonColor(color);
-                          }}
-                        />
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div
+                            style={{
+                              width: "40px",
+                              height: "36px",
+                              backgroundColor: convertHsvaToHex(buttonColor),
+                              border: "1px solid #ddd",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => setShowButtonColorPicker(!showButtonColorPicker)}
+                          />
+                          <TextField
+                            value={buttonColorHex}
+                            onChange={(value) => {
+                              setButtonColorHex(value);
+                              if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                                setButtonColor(convertHexToHsva(value));
+                              }
+                            }}
+                            placeholder="#8340aa"
+                            connectedLeft
+                          />
+                        </div>
+                        {showButtonColorPicker && (
+                          <Box paddingBlockStart="300">
+                            <ColorPicker
+                              color={buttonColor}
+                              onChange={(color) => {
+                                setButtonColor(color);
+                              }}
+                            />
+                          </Box>
+                        )}
                       </Box>
 
                       <TextField
@@ -609,13 +851,40 @@ export default function EditAnnouncementBar() {
                         <Text as="p" variant="bodyMd">
                           Button text color
                         </Text>
-                        <ColorPicker
-                          color={buttonTextColor}
-                          onChange={(color) => {
-                            console.log('Button text color changed:', color);
-                            setButtonTextColor(color);
-                          }}
-                        />
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div
+                            style={{
+                              width: "40px",
+                              height: "36px",
+                              backgroundColor: convertHsvaToHex(buttonTextColor),
+                              border: "1px solid #ddd",
+                              borderRadius: "6px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => setShowButtonTextColorPicker(!showButtonTextColorPicker)}
+                          />
+                          <TextField
+                            value={buttonTextColorHex}
+                            onChange={(value) => {
+                              setButtonTextColorHex(value);
+                              if (value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                                setButtonTextColor(convertHexToHsva(value));
+                              }
+                            }}
+                            placeholder="#8340aa"
+                            connectedLeft
+                          />
+                        </div>
+                        {showButtonTextColorPicker && (
+                          <Box paddingBlockStart="300">
+                            <ColorPicker
+                              color={buttonTextColor}
+                              onChange={(color) => {
+                                setButtonTextColor(color);
+                              }}
+                            />
+                          </Box>
+                        )}
                       </Box>
 
                       <TextField
