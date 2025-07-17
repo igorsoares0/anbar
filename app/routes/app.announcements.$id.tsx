@@ -365,7 +365,7 @@ export default function EditAnnouncementBar() {
         __html: `
           .announcement-editor-layout {
             display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
+            grid-template-columns: 1fr 1.5fr !important;
             gap: 20px !important;
             max-width: 100% !important;
             margin: 0 auto !important;
