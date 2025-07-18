@@ -3,7 +3,7 @@
 client_id = "4d36bf6cef9a57c0a1365018b03816d8"
 name = "anbar"
 handle = "anbar-1"
-application_url = "https://inform-elements-posts-naval.trycloudflare.com"
+application_url = "https://inspections-banners-anthony-essentially.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,7 +26,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://inform-elements-posts-naval.trycloudflare.com/auth/callback", "https://inform-elements-posts-naval.trycloudflare.com/auth/shopify/callback", "https://inform-elements-posts-naval.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://inspections-banners-anthony-essentially.trycloudflare.com/auth/callback", "https://inspections-banners-anthony-essentially.trycloudflare.com/auth/shopify/callback", "https://inspections-banners-anthony-essentially.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

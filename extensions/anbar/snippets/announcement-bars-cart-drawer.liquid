@@ -42,32 +42,44 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
           class="anbar-cart-drawer-content{% if bar.announcementType == 'continuous' %} anbar-continuous{% elsif bar.announcementType == 'multiple' %} anbar-multiple{% endif %}"
           style="display: flex !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; font-family: {{ bar.fontFamily }} !important;">
           
-          <div class="anbar-content" style="display: flex !important; align-items: center !important; gap: 8px !important; flex: 1 !important; font-family: {{ bar.fontFamily }} !important;">
-            {%- if bar.title != blank -%}
-              <span class="anbar-title" style="
-                font-size: {{ bar.titleSize }}px !important;
-                color: {{ bar.titleColor }} !important;
-                font-weight: bold !important;
-                margin: 0 !important;
-                display: inline !important;
-                visibility: visible !important;
-                font-family: {{ bar.fontFamily }} !important;
-              ">{{ bar.title }}</span>
-            {%- endif -%}
-            
-            {%- if bar.subtitle != blank -%}
-              <span class="anbar-subtitle" style="
-                font-size: {{ bar.subtitleSize }}px !important;
-                color: {{ bar.subtitleColor }} !important;
-                margin: 0 !important;
-                display: inline !important;
-                visibility: visible !important;
-                font-family: {{ bar.fontFamily }} !important;
-              ">{{ bar.subtitle }}</span>
-            {%- endif -%}
+          <div class="anbar-content" style="display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; flex: 1 !important; font-family: {{ bar.fontFamily }} !important;">
+            <div class="anbar-text-group" style="display: flex !important; {% if bar.announcementType == 'continuous' %}align-items: center !important; flex-direction: row !important; gap: 8px !important;{% else %}align-items: flex-start !important; flex-direction: column !important; gap: 4px !important;{% endif %}">
+              {%- if bar.title != blank -%}
+                <span class="anbar-title" style="
+                  font-size: {{ bar.titleSize }}px !important;
+                  color: {{ bar.titleColor }} !important;
+                  font-weight: bold !important;
+                  margin: 0 !important;
+                  display: inline !important;
+                  visibility: visible !important;
+                  font-family: {{ bar.fontFamily }} !important;
+                ">{{ bar.title }}</span>
+              {%- endif -%}
+              
+              {%- if bar.subtitle != blank -%}
+                <span class="anbar-subtitle" style="
+                  font-size: {{ bar.subtitleSize }}px !important;
+                  color: {{ bar.subtitleColor }} !important;
+                  margin: 0 !important;
+                  display: inline !important;
+                  visibility: visible !important;
+                  font-family: {{ bar.fontFamily }} !important;
+                ">{{ bar.subtitle }}</span>
+              {%- endif -%}
+            </div>
             
             {%- if bar.discountCode != blank -%}
-              <span class="anbar-discount-code" style="
+              <span class="anbar-discount-code" 
+                onclick="navigator.clipboard.writeText('{{ bar.discountCode }}').then(() => { 
+                  const originalText = this.textContent; 
+                  this.textContent = 'Copied!'; 
+                  setTimeout(() => { this.textContent = originalText; }, 1500); 
+                }).catch(() => { 
+                  const originalText = this.textContent; 
+                  this.textContent = 'Click to copy'; 
+                  setTimeout(() => { this.textContent = originalText; }, 1500); 
+                });"
+                style="
                 font-size: {{ bar.titleSize }}px !important;
                 color: {{ bar.discountCodeColor }} !important;
                 font-weight: bold !important;
@@ -76,6 +88,7 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
                 display: inline !important;
                 visibility: visible !important;
                 font-family: {{ bar.fontFamily }} !important;
+                cursor: pointer !important;
               ">{{ bar.discountCode }}</span>
             {%- endif -%}
           </div>

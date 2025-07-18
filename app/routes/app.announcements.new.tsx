@@ -363,6 +363,7 @@ export default function NewAnnouncementBar() {
             padding-left: 100% !important;
           }
           
+          
           @keyframes preview-marquee {
             0% { transform: translate3d(0, 0, 0); }
             100% { transform: translate3d(-100%, 0, 0); }
@@ -990,36 +991,57 @@ export default function NewAnnouncementBar() {
                 >
                   <div 
                     className={announcementType === "continuous" ? "preview-content" : ""}
-                    style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                    style={{ 
+                      display: "flex", 
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      flex: 1
+                    }}
                   >
-                    {title && (
-                      <span
-                        style={{
-                          fontSize: `${titleSize}px`,
-                          color: convertHsvaToHex(titleColor),
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {title}
-                      </span>
-                    )}
-                    {subtitle && (
-                      <span
-                        style={{
-                          fontSize: `${subtitleSize}px`,
-                          color: convertHsvaToHex(subtitleColor),
-                        }}
-                      >
-                        {subtitle}
-                      </span>
-                    )}
+                    <div style={{ 
+                      display: "flex", 
+                      flexDirection: announcementType === "continuous" ? "row" : "column", 
+                      alignItems: announcementType === "continuous" ? "center" : "flex-start", 
+                      gap: announcementType === "continuous" ? "8px" : "4px" 
+                    }}>
+                      {title && (
+                        <span
+                          style={{
+                            fontSize: `${titleSize}px`,
+                            color: convertHsvaToHex(titleColor),
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {title}
+                        </span>
+                      )}
+                      {subtitle && (
+                        <span
+                          style={{
+                            fontSize: `${subtitleSize}px`,
+                            color: convertHsvaToHex(subtitleColor),
+                          }}
+                        >
+                          {subtitle}
+                        </span>
+                      )}
+                    </div>
                     {discountCode && (
                       <span
+                        onClick={() => {
+                          navigator.clipboard.writeText(discountCode).then(() => {
+                            alert('Discount code copied to clipboard!');
+                          }).catch(() => {
+                            alert('Failed to copy discount code');
+                          });
+                        }}
                         style={{
                           fontSize: `${titleSize}px`,
                           color: convertHsvaToHex(discountCodeColor),
                           fontWeight: "bold",
                           textDecoration: "underline",
+                          cursor: "pointer",
                         }}
                       >
                         {discountCode}

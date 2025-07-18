@@ -48,8 +48,21 @@ Description: Automatically displays active announcement bars based on their loca
   .anbar-content {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     flex: 1;
+  }
+  
+  .anbar-text-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .anbar-announcement-bar:not(.anbar-continuous) .anbar-text-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
   
   .anbar-actions {
@@ -273,24 +286,39 @@ Description: Automatically displays active announcement bars based on their loca
             ">
             
             <div class="anbar-content">
-              {%- if bar.title != blank -%}
-                <span class="anbar-title" style="
-                  font-size: {{ bar.titleSize }}px;
-                  color: {{ bar.titleColor }};
-                ">{{ bar.title }}</span>
-              {%- endif -%}
-              
-              {%- if bar.subtitle != blank -%}
-                <span class="anbar-subtitle" style="
-                  font-size: {{ bar.subtitleSize }}px;
-                  color: {{ bar.subtitleColor }};
-                ">{{ bar.subtitle }}</span>
-              {%- endif -%}
+              <div class="anbar-text-group">
+                {%- if bar.title != blank -%}
+                  <span class="anbar-title" style="
+                    font-size: {{ bar.titleSize }}px;
+                    color: {{ bar.titleColor }};
+                  ">{{ bar.title }}</span>
+                {%- endif -%}
+                
+                {%- if bar.subtitle != blank -%}
+                  <span class="anbar-subtitle" style="
+                    font-size: {{ bar.subtitleSize }}px;
+                    color: {{ bar.subtitleColor }};
+                  ">{{ bar.subtitle }}</span>
+                {%- endif -%}
+              </div>
               
               {%- if bar.discountCode != blank -%}
-                <span class="anbar-discount-code" style="
+                <span class="anbar-discount-code" 
+                  onclick="navigator.clipboard.writeText('{{ bar.discountCode }}').then(() => { 
+                    const originalText = this.textContent; 
+                    this.textContent = 'Copied!'; 
+                    setTimeout(() => { this.textContent = originalText; }, 1500); 
+                  }).catch(() => { 
+                    const originalText = this.textContent; 
+                    this.textContent = 'Click to copy'; 
+                    setTimeout(() => { this.textContent = originalText; }, 1500); 
+                  });"
+                  style="
                   font-size: {{ bar.titleSize }}px;
                   color: {{ bar.discountCodeColor }};
+                  cursor: pointer;
+                  font-weight: bold;
+                  text-decoration: underline;
                 ">{{ bar.discountCode }}</span>
               {%- endif -%}
             </div>
