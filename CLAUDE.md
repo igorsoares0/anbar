@@ -18,6 +18,7 @@ npm start
 npm run lint
 
 # Database setup (run after fresh clone or schema changes)
+# Requires PostgreSQL database and DATABASE_URL environment variable
 npm run setup
 
 # Deploy to Shopify
@@ -33,7 +34,7 @@ This is a Shopify announcement bar app built with Remix framework that includes:
 
 - **Main App**: Remix-based web application in `/app` directory with announcement bar management
 - **Theme Integration**: App embed blocks and app blocks for displaying announcement bars
-- **Database**: Prisma ORM with SQLite for session and announcement bar storage
+- **Database**: Prisma ORM with PostgreSQL for session and announcement bar storage
 - **Authentication**: Shopify App Bridge with OAuth flow
 
 ### Key Files
@@ -108,7 +109,7 @@ The `AnnouncementBar` model includes:
 
 ### Development Notes
 - Uses embedded app pattern with App Bridge React
-- Session storage handled by Prisma with SQLite
+- Session storage handled by Prisma with PostgreSQL
 - Webhooks configured for app uninstall and scope updates
 - Color picker values are in decimal format (0-1), not percentages (0-100)
 - Form submission uses `useSubmit` hook with FormData for embedded app compatibility

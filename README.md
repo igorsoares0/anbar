@@ -102,22 +102,44 @@ Please read the [documentation for @shopify/shopify-app-remix](https://www.npmjs
 
 ### Application Storage
 
-This template uses [Prisma](https://www.prisma.io/) to store session data, by default using an [SQLite](https://www.sqlite.org/index.html) database.
+This template uses [Prisma](https://www.prisma.io/) to store session data, using a [PostgreSQL](https://www.postgresql.org/) database.
 The database is defined as a Prisma schema in `prisma/schema.prisma`.
 
-This use of SQLite works in production if your app runs as a single instance.
-The database that works best for you depends on the data your app needs and how it is queried.
-You can run your database of choice on a server yourself or host it with a SaaS company.
-Here's a short list of databases providers that provide a free tier to get started:
+#### Database Setup
 
-| Database   | Type             | Hosters                                                                                                                                                                                                                               |
-| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| MySQL      | SQL              | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-mysql), [Planet Scale](https://planetscale.com/), [Amazon Aurora](https://aws.amazon.com/rds/aurora/), [Google Cloud SQL](https://cloud.google.com/sql/docs/mysql) |
-| PostgreSQL | SQL              | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-postgresql), [Amazon Aurora](https://aws.amazon.com/rds/aurora/), [Google Cloud SQL](https://cloud.google.com/sql/docs/postgres)                                   |
-| Redis      | Key-value        | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-redis), [Amazon MemoryDB](https://aws.amazon.com/memorydb/)                                                                                                        |
-| MongoDB    | NoSQL / Document | [Digital Ocean](https://www.digitalocean.com/products/managed-databases-mongodb), [MongoDB Atlas](https://www.mongodb.com/atlas/database)                                                                                                  |
+**Development:**
+1. Install PostgreSQL locally or use a service like Railway, Supabase, or Render
+2. Create a database named `anbar_dev` (or your preferred name)
+3. Update the `DATABASE_URL` environment variable in `.env`:
+   ```
+   DATABASE_URL="postgresql://username:password@localhost:5432/anbar_dev?schema=public"
+   ```
+4. Run database setup: `npm run setup`
 
-To use one of these, you can use a different [datasource provider](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#datasource) in your `schema.prisma` file, or a different [SessionStorage adapter package](https://github.com/Shopify/shopify-api-js/blob/main/packages/shopify-api/docs/guides/session-storage.md).
+**Production:**
+Configure your PostgreSQL connection string and run migrations using `npm run setup`.
+
+Here's a short list of PostgreSQL providers that offer good free tiers:
+
+| Provider       | Free Tier Details                                          | Best For                    |
+| -------------- | ---------------------------------------------------------- | --------------------------- |
+| [Railway](https://railway.app/) | $5 credit monthly, PostgreSQL included | Quick setup, development   |
+| [Supabase](https://supabase.com/) | 500MB, 2 projects, unlimited API requests | Full-stack development      |
+| [Render](https://render.com/) | 90 days free, then $7/month | Production-ready deployment |
+| [Neon](https://neon.tech/) | 3GB storage, 1 database | Serverless PostgreSQL       |
+
+#### Environment Variables
+
+Make sure to set the following environment variables:
+
+**Required:**
+- `DATABASE_URL` - PostgreSQL connection string
+- `SHOPIFY_API_KEY` - Your app's API key  
+- `SHOPIFY_API_SECRET` - Your app's API secret
+- `SHOPIFY_APP_URL` - Your app's URL (for webhooks)
+
+**Optional:**
+- `SHOPIFY_ANBAR_ID` - App identifier
 
 ### Build
 
