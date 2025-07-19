@@ -15,8 +15,12 @@ import {
   BlockStack,
   Box,
   Divider,
+  InlineStack,
+  Icon,
+  Tooltip,
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
+import { ClipboardIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { syncAnnouncementBarsToMetafields } from "../utils/syncAnnouncementBars.server";
@@ -468,20 +472,51 @@ export default function EditAnnouncementBar() {
             <Card>
               <BlockStack gap="500">
                 <div style={{ 
-                  padding: "12px 16px", 
+                  padding: "16px", 
                   backgroundColor: "#f6f6f7", 
                   borderRadius: "8px",
                   border: "1px solid #e1e3e5"
                 }}>
-                  <Text as="p" variant="bodyMd" fontWeight="medium">
-                    Announcement Bar ID: 
-                  </Text>
-                  <Text as="p" variant="bodySm" color="subdued" style={{ fontFamily: "monospace", marginTop: "4px" }}>
-                    {announcementBar.id}
-                  </Text>
-                  <Text as="p" variant="bodySm" color="subdued" style={{ marginTop: "4px" }}>
-                    Use this ID in the theme app block for custom positioning
-                  </Text>
+                  <InlineStack align="space-between" blockAlign="start">
+                    <BlockStack gap="200">
+                      <Text as="p" variant="bodyMd" fontWeight="medium">
+                        Announcement Bar ID
+                      </Text>
+                      <Text as="p" variant="bodySm" tone="subdued">
+                        Use this ID in the theme app block for custom positioning
+                      </Text>
+                    </BlockStack>
+                    <Tooltip content="Copy ID to clipboard">
+                      <Button
+                        variant="tertiary"
+                        size="micro"
+                        icon={ClipboardIcon}
+                        onClick={() => {
+                          navigator.clipboard.writeText(announcementBar.id).then(() => {
+                            shopify.toast.show('ID copied to clipboard!');
+                          }).catch(() => {
+                            shopify.toast.show('Failed to copy ID', { isError: true });
+                          });
+                        }}
+                        accessibilityLabel="Copy announcement bar ID"
+                      />
+                    </Tooltip>
+                  </InlineStack>
+                  <Box paddingBlockStart="300">
+                    <div style={{
+                      padding: "8px 12px",
+                      backgroundColor: "#ffffff",
+                      borderRadius: "6px",
+                      border: "1px solid #d1d5db",
+                      fontFamily: "monospace",
+                      fontSize: "13px",
+                      color: "#374151",
+                      wordBreak: "break-all",
+                      userSelect: "all"
+                    }}>
+                      {announcementBar.id}
+                    </div>
+                  </Box>
                 </div>
 
                 <Text as="h2" variant="headingLg">
