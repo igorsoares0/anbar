@@ -45,7 +45,7 @@ model AnnouncementBar {
   discountCode      String?
   callToAction      String   // "button", "none", "full_bar"
   link              String?
-  showCloseIcon     Boolean  @default(true)
+  showCloseIcon     Boolean  @default(false)
   
   // Design fields
   position          String   @default("top") // "top", "bottom"

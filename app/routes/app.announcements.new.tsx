@@ -95,7 +95,7 @@ export default function NewAnnouncementBar() {
   const [discountCode, setDiscountCode] = useState("SAVE50");
   const [callToAction, setCallToAction] = useState("button");
   const [link, setLink] = useState("");
-  const [showCloseIcon, setShowCloseIcon] = useState(true);
+  const [showCloseIcon, setShowCloseIcon] = useState(false);
   const [position, setPosition] = useState("top");
   const [backgroundColor, setBackgroundColor] = useState({ hue: 220, brightness: 0.6, saturation: 0.8, alpha: 1 });
   const [backgroundColorHex, setBackgroundColorHex] = useState("#8340aa");
