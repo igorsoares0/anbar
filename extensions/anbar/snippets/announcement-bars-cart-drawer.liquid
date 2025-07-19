@@ -69,27 +69,38 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
             </div>
             
             {%- if bar.discountCode != blank -%}
-              <span class="anbar-discount-code" 
+              <div class="anbar-discount-code-container" 
                 onclick="navigator.clipboard.writeText('{{ bar.discountCode }}').then(() => { 
-                  const originalText = this.textContent; 
-                  this.textContent = 'Copied!'; 
-                  setTimeout(() => { this.textContent = originalText; }, 1500); 
+                  const codeText = this.querySelector('.anbar-discount-code');
+                  const originalText = codeText.textContent; 
+                  codeText.textContent = 'Copied!'; 
+                  setTimeout(() => { codeText.textContent = originalText; }, 1500); 
                 }).catch(() => { 
-                  const originalText = this.textContent; 
-                  this.textContent = 'Click to copy'; 
-                  setTimeout(() => { this.textContent = originalText; }, 1500); 
+                  const codeText = this.querySelector('.anbar-discount-code');
+                  const originalText = codeText.textContent; 
+                  codeText.textContent = 'Click to copy'; 
+                  setTimeout(() => { codeText.textContent = originalText; }, 1500); 
                 });"
                 style="
-                font-size: {{ bar.titleSize }}px !important;
-                color: {{ bar.discountCodeColor }} !important;
-                font-weight: bold !important;
-                text-decoration: underline !important;
-                margin: 0 !important;
-                display: inline !important;
-                visibility: visible !important;
-                font-family: {{ bar.fontFamily }} !important;
-                cursor: pointer !important;
-              ">{{ bar.discountCode }}</span>
+                  display: inline-flex !important;
+                  align-items: center !important;
+                  border: 2px dashed {{ bar.discountCodeColor }} !important;
+                  border-radius: 6px !important;
+                  padding: 6px 12px !important;
+                  gap: 8px !important;
+                  cursor: pointer !important;
+                  transition: background-color 0.2s ease !important;
+                  color: {{ bar.discountCodeColor }} !important;
+                  font-family: {{ bar.fontFamily }} !important;
+                ">
+                <span class="anbar-discount-code" style="
+                  font-size: {{ bar.titleSize }}px !important;
+                  font-weight: bold !important;
+                  margin: 0 !important;
+                  user-select: none !important;
+                  font-family: {{ bar.fontFamily }} !important;
+                ">{{ bar.discountCode }}</span>
+              </div>
             {%- endif -%}
           </div>
           

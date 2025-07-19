@@ -1128,7 +1128,7 @@ export default function EditAnnouncementBar() {
                       )}
                     </div>
                     {discountCode && (
-                      <span
+                      <div
                         onClick={() => {
                           navigator.clipboard.writeText(discountCode).then(() => {
                             alert('Discount code copied to clipboard!');
@@ -1137,15 +1137,32 @@ export default function EditAnnouncementBar() {
                           });
                         }}
                         style={{
-                          fontSize: `${titleSize}px`,
-                          color: convertHsvaToHex(discountCodeColor),
-                          fontWeight: "bold",
-                          textDecoration: "underline",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          border: `2px dashed ${convertHsvaToHex(discountCodeColor)}`,
+                          borderRadius: "6px",
+                          padding: "6px 12px",
                           cursor: "pointer",
+                          color: convertHsvaToHex(discountCodeColor),
+                          transition: "background-color 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
                         }}
                       >
-                        {discountCode}
-                      </span>
+                        <span
+                          style={{
+                            fontSize: `${titleSize}px`,
+                            fontWeight: "bold",
+                            userSelect: "none",
+                          }}
+                        >
+                          {discountCode}
+                        </span>
+                      </div>
                     )}
                   </div>
 

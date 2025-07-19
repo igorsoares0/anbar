@@ -81,10 +81,31 @@ Description: Displays an announcement bar with customizable styling and content
     margin: 0;
   }
   
+  .anbar-discount-code-container {
+    display: inline-flex;
+    align-items: center;
+    border: 2px dashed;
+    border-radius: 6px;
+    padding: 6px 12px;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .anbar-discount-code-container:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
   .anbar-discount-code {
     font-weight: bold;
-    text-decoration: underline;
     margin: 0;
+    user-select: none;
+  }
+
+  .anbar-copy-text {
+    font-size: 12px;
+    opacity: 0.8;
+    user-select: none;
   }
   
   .anbar-button {
@@ -309,23 +330,24 @@ Description: Displays an announcement bar with customizable styling and content
                 </div>
                 
                 {%- if bar.discountCode != blank -%}
-                  <span class="anbar-discount-code" 
+                  <div class="anbar-discount-code-container" 
                     onclick="navigator.clipboard.writeText('{{ bar.discountCode }}').then(() => { 
-                      const originalText = this.textContent; 
-                      this.textContent = 'Copied!'; 
-                      setTimeout(() => { this.textContent = originalText; }, 1500); 
+                      const codeText = this.querySelector('.anbar-discount-code');
+                      const originalText = codeText.textContent; 
+                      codeText.textContent = 'Copied!'; 
+                      setTimeout(() => { codeText.textContent = originalText; }, 1500); 
                     }).catch(() => { 
-                      const originalText = this.textContent; 
-                      this.textContent = 'Click to copy'; 
-                      setTimeout(() => { this.textContent = originalText; }, 1500); 
+                      const codeText = this.querySelector('.anbar-discount-code');
+                      const originalText = codeText.textContent; 
+                      codeText.textContent = 'Click to copy'; 
+                      setTimeout(() => { codeText.textContent = originalText; }, 1500); 
                     });"
                     style="
-                    font-size: {{ bar.titleSize }}px;
-                    color: {{ bar.discountCodeColor }};
-                    cursor: pointer;
-                    font-weight: bold;
-                    text-decoration: underline;
-                  ">{{ bar.discountCode }}</span>
+                      border-color: {{ bar.discountCodeColor }};
+                      color: {{ bar.discountCodeColor }};
+                    ">
+                    <span class="anbar-discount-code" style="font-size: {{ bar.titleSize }}px;">{{ bar.discountCode }}</span>
+                  </div>
                 {%- endif -%}
               </div>
               
