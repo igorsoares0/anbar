@@ -119,7 +119,7 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
                    display: inline-block;
                    padding: 6px 12px;
                    transition: opacity 0.2s ease;
-                 ">Shop Now</a>
+                 ">{{ bar.buttonText | default: "Shop Now" }}</a>
             {%- endif -%}
             
             {%- if bar.showCloseIcon -%}

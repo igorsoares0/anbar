@@ -63,6 +63,7 @@ model AnnouncementBar {
   discountCodeColor String   @default("#ffff00")
   
   // Button styling
+  buttonText        String?  @default("Shop Now")
   buttonColor       String   @default("#ffffff")
   buttonTextSize    Int      @default(14)
   buttonTextColor   String   @default("#000000")

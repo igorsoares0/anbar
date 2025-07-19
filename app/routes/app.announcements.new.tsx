@@ -55,6 +55,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         subtitleSize: parseInt(formData.get("subtitleSize") as string) || 14,
         subtitleColor: formData.get("subtitleColor") as string,
         discountCodeColor: formData.get("discountCodeColor") as string,
+        buttonText: formData.get("buttonText") as string,
         buttonColor: formData.get("buttonColor") as string,
         buttonTextSize: parseInt(formData.get("buttonTextSize") as string) || 14,
         buttonTextColor: formData.get("buttonTextColor") as string,
@@ -74,7 +75,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     return redirect(`/app/announcements/${announcementBar.id}`);
   } catch (error) {
-    return json({ error: "Failed to create announcement bar" }, { status: 400 });
+    console.error("Creation error:", error);
+    return json({ error: `Failed to create announcement bar: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 400 });
   }
 };
 
@@ -115,6 +117,7 @@ export default function NewAnnouncementBar() {
   const [discountCodeColor, setDiscountCodeColor] = useState({ hue: 60, brightness: 0.9, saturation: 1, alpha: 1 });
   const [discountCodeColorHex, setDiscountCodeColorHex] = useState("#e6e600");
   const [showDiscountCodeColorPicker, setShowDiscountCodeColorPicker] = useState(false);
+  const [buttonText, setButtonText] = useState("Shop Now");
   const [buttonColor, setButtonColor] = useState({ hue: 210, brightness: 0.6, saturation: 0.8, alpha: 1 });
   const [buttonColorHex, setButtonColorHex] = useState("#3366cc");
   const [showButtonColorPicker, setShowButtonColorPicker] = useState(false);
@@ -714,6 +717,14 @@ export default function NewAnnouncementBar() {
 
                   {callToAction === "button" && (
                     <>
+                      <TextField
+                        label="Button text"
+                        value={buttonText}
+                        onChange={setButtonText}
+                        name="buttonText"
+                        placeholder="Shop Now"
+                      />
+
                       <Box>
                         <Text as="p" variant="bodyMd">
                           Button color
@@ -943,6 +954,7 @@ export default function NewAnnouncementBar() {
                         formData.append("subtitleSize", subtitleSize.toString());
                         formData.append("subtitleColor", convertHsvaToHex(subtitleColor));
                         formData.append("discountCodeColor", convertHsvaToHex(discountCodeColor));
+                        formData.append("buttonText", buttonText);
                         formData.append("buttonColor", convertHsvaToHex(buttonColor));
                         formData.append("buttonTextSize", buttonTextSize.toString());
                         formData.append("buttonTextColor", convertHsvaToHex(buttonTextColor));
@@ -1079,7 +1091,7 @@ export default function NewAnnouncementBar() {
                           cursor: "pointer",
                         }}
                       >
-                        Shop Now
+                        {buttonText}
                       </button>
                     )}
                     {showCloseIcon && (

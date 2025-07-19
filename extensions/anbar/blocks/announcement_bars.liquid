@@ -359,7 +359,7 @@ Description: Automatically displays active announcement bars based on their loca
                      color: {{ bar.buttonTextColor }};
                      font-size: {{ bar.buttonTextSize }}px;
                      border-radius: {{ bar.buttonBorderRadius }}px;
-                   ">Shop Now</a>
+                   ">{{ bar.buttonText | default: "Shop Now" }}</a>
               {%- endif -%}
               
               {%- if bar.showCloseIcon -%}

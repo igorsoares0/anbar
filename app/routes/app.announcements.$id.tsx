@@ -79,37 +79,46 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   }
 
   try {
+    // Prepare the data object
+    const updateData: any = {
+      name: formData.get("name") as string,
+      announcementType: formData.get("announcementType") as string,
+      title: formData.get("title") as string || null,
+      subtitle: formData.get("subtitle") as string || null,
+      discountCode: formData.get("discountCode") as string || null,
+      callToAction: formData.get("callToAction") as string,
+      link: formData.get("link") as string || null,
+      showCloseIcon: formData.get("showCloseIcon") === "on",
+      position: formData.get("position") as string,
+      backgroundColor: formData.get("backgroundColor") as string,
+      borderRadius: parseInt(formData.get("borderRadius") as string) || 0,
+      borderWidth: parseInt(formData.get("borderWidth") as string) || 0,
+      borderColor: formData.get("borderColor") as string,
+      fontFamily: formData.get("fontFamily") as string,
+      titleSize: parseInt(formData.get("titleSize") as string) || 16,
+      titleColor: formData.get("titleColor") as string,
+      subtitleSize: parseInt(formData.get("subtitleSize") as string) || 14,
+      subtitleColor: formData.get("subtitleColor") as string,
+      discountCodeColor: formData.get("discountCodeColor") as string,
+      buttonColor: formData.get("buttonColor") as string,
+      buttonTextSize: parseInt(formData.get("buttonTextSize") as string) || 14,
+      buttonTextColor: formData.get("buttonTextColor") as string,
+      buttonBorderRadius: parseInt(formData.get("buttonBorderRadius") as string) || 4,
+      displayLocation: formData.get("displayLocation") as string,
+      targetProducts: formData.get("targetProducts") ? JSON.parse(formData.get("targetProducts") as string) : null,
+      targetCollections: formData.get("targetCollections") ? JSON.parse(formData.get("targetCollections") as string) : null,
+      isPublished: formData.get("isPublished") === "on",
+    };
+
+    // Add buttonText only if it's provided (for migration compatibility)
+    const buttonTextValue = formData.get("buttonText") as string;
+    if (buttonTextValue) {
+      updateData.buttonText = buttonTextValue;
+    }
+
     await prisma.announcementBar.update({
       where: { id, shop: session.shop },
-      data: {
-        name: formData.get("name") as string,
-        announcementType: formData.get("announcementType") as string,
-        title: formData.get("title") as string || null,
-        subtitle: formData.get("subtitle") as string || null,
-        discountCode: formData.get("discountCode") as string || null,
-        callToAction: formData.get("callToAction") as string,
-        link: formData.get("link") as string || null,
-        showCloseIcon: formData.get("showCloseIcon") === "on",
-        position: formData.get("position") as string,
-        backgroundColor: formData.get("backgroundColor") as string,
-        borderRadius: parseInt(formData.get("borderRadius") as string) || 0,
-        borderWidth: parseInt(formData.get("borderWidth") as string) || 0,
-        borderColor: formData.get("borderColor") as string,
-        fontFamily: formData.get("fontFamily") as string,
-        titleSize: parseInt(formData.get("titleSize") as string) || 16,
-        titleColor: formData.get("titleColor") as string,
-        subtitleSize: parseInt(formData.get("subtitleSize") as string) || 14,
-        subtitleColor: formData.get("subtitleColor") as string,
-        discountCodeColor: formData.get("discountCodeColor") as string,
-        buttonColor: formData.get("buttonColor") as string,
-        buttonTextSize: parseInt(formData.get("buttonTextSize") as string) || 14,
-        buttonTextColor: formData.get("buttonTextColor") as string,
-        buttonBorderRadius: parseInt(formData.get("buttonBorderRadius") as string) || 4,
-        displayLocation: formData.get("displayLocation") as string,
-        targetProducts: formData.get("targetProducts") ? JSON.parse(formData.get("targetProducts") as string) : null,
-        targetCollections: formData.get("targetCollections") ? JSON.parse(formData.get("targetCollections") as string) : null,
-        isPublished: formData.get("isPublished") === "on",
-      },
+      data: updateData,
     });
 
     // Automatically sync after update
@@ -120,7 +129,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
     return json({ success: true });
   } catch (error) {
-    return json({ error: "Failed to update announcement bar" }, { status: 400 });
+    console.error("Update error:", error);
+    return json({ error: `Failed to update announcement bar: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 400 });
   }
 };
 
@@ -199,6 +209,7 @@ export default function EditAnnouncementBar() {
   const [discountCodeColor, setDiscountCodeColor] = useState(convertHexToHsva(announcementBar.discountCodeColor));
   const [discountCodeColorHex, setDiscountCodeColorHex] = useState(announcementBar.discountCodeColor);
   const [showDiscountCodeColorPicker, setShowDiscountCodeColorPicker] = useState(false);
+  const [buttonText, setButtonText] = useState(announcementBar.buttonText || "Shop Now");
   const [buttonColor, setButtonColor] = useState(convertHexToHsva(announcementBar.buttonColor));
   const [buttonColorHex, setButtonColorHex] = useState(announcementBar.buttonColor);
   const [showButtonColorPicker, setShowButtonColorPicker] = useState(false);
@@ -799,6 +810,14 @@ export default function EditAnnouncementBar() {
 
                   {callToAction === "button" && (
                     <>
+                      <TextField
+                        label="Button text"
+                        value={buttonText}
+                        onChange={setButtonText}
+                        name="buttonText"
+                        placeholder="Shop Now"
+                      />
+
                       <Box>
                         <Text as="p" variant="bodyMd">
                           Button color
@@ -1030,6 +1049,7 @@ export default function EditAnnouncementBar() {
                       formData.append("subtitleSize", subtitleSize.toString());
                       formData.append("subtitleColor", convertHsvaToHex(subtitleColor));
                       formData.append("discountCodeColor", convertHsvaToHex(discountCodeColor));
+                      formData.append("buttonText", buttonText);
                       formData.append("buttonColor", convertHsvaToHex(buttonColor));
                       formData.append("buttonTextSize", buttonTextSize.toString());
                       formData.append("buttonTextColor", convertHsvaToHex(buttonTextColor));
@@ -1179,7 +1199,7 @@ export default function EditAnnouncementBar() {
                           cursor: "pointer",
                         }}
                       >
-                        Shop Now
+                        {buttonText}
                       </button>
                     )}
                     {showCloseIcon && (
