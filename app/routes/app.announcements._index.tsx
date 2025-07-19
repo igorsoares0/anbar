@@ -8,7 +8,6 @@ import {
   Button,
   DataTable,
   Badge,
-  ButtonGroup,
   EmptyState,
   Text,
 } from "@shopify/polaris";
@@ -41,24 +40,10 @@ export default function AnnouncementBarsIndex() {
     ) : (
       <Badge>Draft</Badge>
     ),
-    bar.isActive ? (
-      <Badge status="success">Active</Badge>
-    ) : (
-      <Badge status="critical">Inactive</Badge>
-    ),
     bar.createdAt.split("T")[0],
-    <ButtonGroup>
-      <Button size="micro" url={`/app/announcements/${bar.id}`}>
-        Edit
-      </Button>
-      <Button
-        size="micro"
-        variant="primary"
-        tone={bar.isActive ? "critical" : "success"}
-      >
-        {bar.isActive ? "Deactivate" : "Activate"}
-      </Button>
-    </ButtonGroup>,
+    <Button size="micro" url={`/app/announcements/${bar.id}`}>
+      Edit
+    </Button>,
   ]);
 
   return (
@@ -112,14 +97,12 @@ export default function AnnouncementBarsIndex() {
                     "text",
                     "text",
                     "text",
-                    "text",
                   ]}
                   headings={[
                     "Name",
                     "ID",
                     "Type",
                     "Status",
-                    "Active",
                     "Created",
                     "Actions",
                   ]}
