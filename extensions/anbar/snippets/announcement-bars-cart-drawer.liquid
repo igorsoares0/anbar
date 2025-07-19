@@ -39,11 +39,23 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
         
         <{{ wrapper_element }} 
           {% if wrapper_attrs != blank %}{{ wrapper_attrs }}{% endif %}
-          class="anbar-cart-drawer-content{% if bar.announcementType == 'continuous' %} anbar-continuous{% elsif bar.announcementType == 'multiple' %} anbar-multiple{% endif %}"
-          style="display: flex !important; align-items: center !important; justify-content: space-between !important; width: 100% !important; font-family: {{ bar.fontFamily }} !important;">
+          class="anbar-announcement-bar{% if bar.announcementType == 'continuous' %} anbar-continuous{% elsif bar.announcementType == 'multiple' %} anbar-multiple{% endif %}"
+          style="
+            background-color: {{ bar.backgroundColor }} !important;
+            border-radius: {{ bar.borderRadius }}px !important;
+            border: {{ bar.borderWidth }}px solid {{ bar.borderColor }} !important;
+            font-family: {{ bar.fontFamily }} !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 12px 16px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+          ">
           
-          <div class="anbar-content" style="display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; flex: 1 !important; font-family: {{ bar.fontFamily }} !important;">
-            <div class="anbar-text-group" style="display: flex !important; {% if bar.announcementType == 'continuous' %}align-items: center !important; flex-direction: row !important; gap: 8px !important;{% else %}align-items: flex-start !important; flex-direction: column !important; gap: 4px !important;{% endif %}">
+          <div class="anbar-content" style="font-family: {{ bar.fontFamily }} !important;">
+            <div class="anbar-text-group">
               {%- if bar.title != blank -%}
                 <span class="anbar-title" style="
                   font-size: {{ bar.titleSize }}px !important;
@@ -66,45 +78,45 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
                   font-family: {{ bar.fontFamily }} !important;
                 ">{{ bar.subtitle }}</span>
               {%- endif -%}
+              
+              {%- if bar.discountCode != blank -%}
+                <div class="anbar-discount-code-container" 
+                  onclick="navigator.clipboard.writeText('{{ bar.discountCode }}').then(() => { 
+                    const codeText = this.querySelector('.anbar-discount-code');
+                    const originalText = codeText.textContent; 
+                    codeText.textContent = 'Copied!'; 
+                    setTimeout(() => { codeText.textContent = originalText; }, 1500); 
+                  }).catch(() => { 
+                    const codeText = this.querySelector('.anbar-discount-code');
+                    const originalText = codeText.textContent; 
+                    codeText.textContent = 'Click to copy'; 
+                    setTimeout(() => { codeText.textContent = originalText; }, 1500); 
+                  });"
+                  style="
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    border: 2px dashed {{ bar.discountCodeColor }} !important;
+                    border-radius: 6px !important;
+                    padding: 6px 12px !important;
+                    gap: 8px !important;
+                    cursor: pointer !important;
+                    transition: background-color 0.2s ease !important;
+                    color: {{ bar.discountCodeColor }} !important;
+                    font-family: {{ bar.fontFamily }} !important;
+                  ">
+                  <span class="anbar-discount-code" style="
+                    font-size: {{ bar.titleSize }}px !important;
+                    font-weight: bold !important;
+                    margin: 0 !important;
+                    user-select: none !important;
+                    font-family: {{ bar.fontFamily }} !important;
+                  ">{{ bar.discountCode }}</span>
+                </div>
+              {%- endif -%}
             </div>
-            
-            {%- if bar.discountCode != blank -%}
-              <div class="anbar-discount-code-container" 
-                onclick="navigator.clipboard.writeText('{{ bar.discountCode }}').then(() => { 
-                  const codeText = this.querySelector('.anbar-discount-code');
-                  const originalText = codeText.textContent; 
-                  codeText.textContent = 'Copied!'; 
-                  setTimeout(() => { codeText.textContent = originalText; }, 1500); 
-                }).catch(() => { 
-                  const codeText = this.querySelector('.anbar-discount-code');
-                  const originalText = codeText.textContent; 
-                  codeText.textContent = 'Click to copy'; 
-                  setTimeout(() => { codeText.textContent = originalText; }, 1500); 
-                });"
-                style="
-                  display: inline-flex !important;
-                  align-items: center !important;
-                  border: 2px dashed {{ bar.discountCodeColor }} !important;
-                  border-radius: 6px !important;
-                  padding: 6px 12px !important;
-                  gap: 8px !important;
-                  cursor: pointer !important;
-                  transition: background-color 0.2s ease !important;
-                  color: {{ bar.discountCodeColor }} !important;
-                  font-family: {{ bar.fontFamily }} !important;
-                ">
-                <span class="anbar-discount-code" style="
-                  font-size: {{ bar.titleSize }}px !important;
-                  font-weight: bold !important;
-                  margin: 0 !important;
-                  user-select: none !important;
-                  font-family: {{ bar.fontFamily }} !important;
-                ">{{ bar.discountCode }}</span>
-              </div>
-            {%- endif -%}
           </div>
           
-          <div class="anbar-actions" style="display: flex !important; align-items: center !important; gap: 8px !important;">
+          {% if bar.announcementType != 'continuous' %}<div class="anbar-actions" style="display: flex !important; align-items: center !important; gap: 8px !important;">{% endif %}
             {%- if bar.callToAction == 'button' and bar.link != blank -%}
               <a href="{{ bar.link }}" 
                  class="anbar-button"
@@ -137,7 +149,7 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
                         transition: opacity 0.2s ease;
                       ">×</button>
             {%- endif -%}
-          </div>
+          {% if bar.announcementType != 'continuous' %}</div>{% endif %}
         </{{ wrapper_element }}>
       </div>
     {%- endif -%}

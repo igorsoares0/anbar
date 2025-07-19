@@ -101,6 +101,78 @@ Description: JavaScript that automatically injects announcement bars into cart d
   // Make function globally available
   window.anbarCartDrawerClose = anbarCartDrawerClose;
   
+  // Inject CSS for cart drawer continuous scroll
+  function injectCartDrawerCSS() {
+    // Check if CSS is already injected
+    if (document.getElementById('anbar-cart-drawer-css')) {
+      return;
+    }
+    
+    const css = `
+      /* Cart drawer specific continuous scroll fixes */
+      .anbar-cart-drawer-wrapper .anbar-announcement-bar:not(.anbar-continuous) .anbar-content {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        flex: 1 !important;
+      }
+      
+      .anbar-cart-drawer-wrapper .anbar-announcement-bar:not(.anbar-continuous) .anbar-text-group {
+        display: flex !important;
+        align-items: flex-start !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+      }
+      
+      .anbar-cart-drawer-wrapper .anbar-continuous {
+        overflow: hidden !important;
+        white-space: nowrap !important;
+        position: relative !important;
+      }
+      
+      .anbar-cart-drawer-wrapper .anbar-continuous .anbar-content {
+        display: inline-block !important;
+        white-space: nowrap !important;
+        animation: anbar-marquee 15s linear infinite !important;
+        padding-left: 100% !important;
+        flex: none !important;
+        gap: 0 !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+      }
+      
+      .anbar-cart-drawer-wrapper .anbar-continuous .anbar-text-group {
+        display: inline-flex !important;
+        align-items: center !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+        white-space: nowrap !important;
+      }
+      
+      @keyframes anbar-marquee {
+        0% { transform: translate3d(0, 0, 0); }
+        100% { transform: translate3d(-100%, 0, 0); }
+      }
+      
+      .anbar-cart-drawer-wrapper .anbar-continuous:hover .anbar-content {
+        animation-play-state: paused !important;
+      }
+      
+      @media (max-width: 768px) {
+        .anbar-cart-drawer-wrapper .anbar-continuous .anbar-content {
+          animation: anbar-marquee 12s linear infinite !important;
+        }
+      }
+    `;
+    
+    const style = document.createElement('style');
+    style.id = 'anbar-cart-drawer-css';
+    style.textContent = css;
+    document.head.appendChild(style);
+    console.log('Anbar: Cart drawer CSS injected');
+  }
+  
   // Check and hide previously closed bars
   function checkClosedBars() {
     const cartBars = document.querySelectorAll('[id^="anbar-cart-drawer-"]');
@@ -176,6 +248,9 @@ Description: JavaScript that automatically injects announcement bars into cart d
           }
         }
       });
+      
+      // Inject CSS for continuous scroll
+      injectCartDrawerCSS();
       
       // Also ensure the function is globally available
       if (typeof window.anbarCartDrawerClose !== 'function') {
@@ -441,6 +516,11 @@ Description: JavaScript that automatically injects announcement bars into cart d
       }
     }
     
+    // Inject CSS for continuous scroll after successful injection
+    if (isInjected) {
+      injectCartDrawerCSS();
+    }
+    
     // Post-injection verification
     if (isInjected) {
       setTimeout(() => {
@@ -601,6 +681,9 @@ Description: JavaScript that automatically injects announcement bars into cart d
   
   // Initialize
   function init() {
+    // Inject CSS immediately on initialization
+    injectCartDrawerCSS();
+    
     // Initial check
     handleCartDrawerChange();
     
