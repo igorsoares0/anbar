@@ -123,8 +123,8 @@ Description: Renders announcement bars for injection into cart drawers via JavaS
             {%- endif -%}
             
             {%- if bar.showCloseIcon -%}
-              <button class="anbar-close" 
-                      data-anbar-close="{{ bar.id }}"
+              <button class="anbar-close anbar-cart-close" 
+                      data-bar-id="{{ bar.id }}"
                       style="
                         color: {{ bar.titleColor }};
                         cursor: pointer;

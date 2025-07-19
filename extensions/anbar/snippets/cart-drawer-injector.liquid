@@ -59,14 +59,47 @@ Description: JavaScript that automatically injects announcement bars into cart d
   let isInjected = false;
   let observer = null;
   
+  // Prevent multiple close executions
+  let closingInProgress = false;
+
   // Cart drawer close function
   function anbarCartDrawerClose(barId) {
-    const bar = document.getElementById('anbar-cart-drawer-' + barId);
-    if (bar) {
-      bar.style.display = 'none';
-      sessionStorage.setItem('anbar-cart-drawer-closed-' + barId, 'true');
+    // Prevent multiple simultaneous executions
+    if (closingInProgress) {
+      console.log('Anbar: Close already in progress, skipping');
+      return;
     }
+    closingInProgress = true;
+
+    console.log('Anbar: anbarCartDrawerClose called with barId:', barId);
+    
+    // Save closed state immediately
+    sessionStorage.setItem('anbar-cart-drawer-closed-' + barId, 'true');
+    console.log('Anbar: Cart drawer bar state saved');
+    
+    // Remove ALL cart drawer wrappers immediately (nuclear approach)
+    const allWrappers = document.querySelectorAll('.anbar-cart-drawer-wrapper');
+    console.log('Anbar: Found', allWrappers.length, 'cart drawer wrappers to remove');
+    
+    allWrappers.forEach((wrapper, index) => {
+      console.log('Anbar: Removing wrapper', index + 1);
+      wrapper.remove();
+    });
+    
+    // Reset injection flag
+    isInjected = false;
+    console.log('Anbar: All cart drawer wrappers removed and injection flag reset');
+    
+    // Reset the closing flag after a short delay
+    setTimeout(() => {
+      closingInProgress = false;
+    }, 100);
+    
+    console.log('Anbar: Cart drawer bar closed successfully');
   }
+  
+  // Make function globally available
+  window.anbarCartDrawerClose = anbarCartDrawerClose;
   
   // Check and hide previously closed bars
   function checkClosedBars() {
@@ -84,6 +117,12 @@ Description: JavaScript that automatically injects announcement bars into cart d
     const cartDrawer = document.querySelector('.slidecarthq.open');
     if (!cartDrawer || cartDrawer.offsetWidth === 0 || cartDrawer.offsetHeight === 0) {
       return false; // Not found or not visible
+    }
+    
+    // Don't inject if all cart drawer bars are closed
+    if (areAllCartDrawerBarsClosed()) {
+      console.log('Anbar: All cart drawer bars are closed, skipping direct injection');
+      return true; // Return true to prevent fallback injection
     }
     
     const header = cartDrawer.querySelector('.header');
@@ -125,17 +164,37 @@ Description: JavaScript that automatically injects announcement bars into cart d
         cartDrawer.insertBefore(container, cartDrawer.children[1] || null);
       }
       
-      // Set up close button event listeners
-      const closeButtons = container.querySelectorAll('[data-anbar-close]');
-      closeButtons.forEach(button => {
-        const barId = button.getAttribute('data-anbar-close');
-        if (barId) {
-          button.addEventListener('click', () => anbarCartDrawerClose(barId));
+      // Set up event delegation for close buttons since they're injected dynamically
+      container.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('anbar-cart-close')) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const barId = e.target.getAttribute('data-bar-id');
+          if (barId) {
+            anbarCartDrawerClose(barId);
+          }
         }
       });
       
+      // Also ensure the function is globally available
+      if (typeof window.anbarCartDrawerClose !== 'function') {
+        window.anbarCartDrawerClose = anbarCartDrawerClose;
+      }
+      
       // Check for previously closed bars
       setTimeout(checkClosedBars, 100);
+      
+      // Also check for closed cart drawer bars specifically
+      setTimeout(() => {
+        const cartBars = container.querySelectorAll('[id^="anbar-cart-drawer-"]');
+        cartBars.forEach(bar => {
+          const barId = bar.id.replace('anbar-cart-drawer-', '');
+          if (sessionStorage.getItem('anbar-cart-drawer-closed-' + barId) === 'true') {
+            bar.style.display = 'none';
+          }
+        });
+      }, 100);
       
       isInjected = true;
       console.log('Anbar: SlideCartHQ direct injection successful');
@@ -269,6 +328,12 @@ Description: JavaScript that automatically injects announcement bars into cart d
   // Inject announcement bars into cart drawer
   function injectAnnouncementBars() {
     if (isInjected) return;
+    
+    // Don't inject if all cart drawer bars are closed
+    if (areAllCartDrawerBarsClosed()) {
+      console.log('Anbar: All cart drawer bars are closed, skipping injection');
+      return;
+    }
     
     // Try direct SlideCartHQ injection first (we know this works)
     if (directSlideCartHQInject()) {
@@ -406,6 +471,24 @@ Description: JavaScript that automatically injects announcement bars into cart d
     containers.forEach(container => container.remove());
     isInjected = false;
   }
+
+  // Check if all cart drawer bars are closed
+  function areAllCartDrawerBarsClosed() {
+    const announcementHTML = getAnnouncementBarsHTML();
+    if (!announcementHTML.trim()) return true;
+    
+    // Extract bar IDs from the HTML to check if they're all closed
+    const barIdMatches = announcementHTML.match(/id="anbar-cart-drawer-([^"]+)"/g);
+    if (!barIdMatches) return true;
+    
+    for (const match of barIdMatches) {
+      const barId = match.match(/anbar-cart-drawer-([^"]+)/)[1];
+      if (sessionStorage.getItem('anbar-cart-drawer-closed-' + barId) !== 'true') {
+        return false;
+      }
+    }
+    return true;
+  }
   
   // Handle cart drawer visibility changes
   function handleCartDrawerChange() {
@@ -419,7 +502,17 @@ Description: JavaScript that automatically injects announcement bars into cart d
                        !cartDrawer.classList.contains('hidden');
       
       if (isVisible && !isInjected) {
-        setTimeout(injectAnnouncementBars, 100); // Small delay to ensure cart content is loaded
+        // Only inject if there are bars that should be shown (not all closed)
+        if (!areAllCartDrawerBarsClosed()) {
+          console.log('Anbar: Cart drawer visible and bars available, injecting...');
+          setTimeout(injectAnnouncementBars, 100);
+        } else {
+          console.log('Anbar: Cart drawer visible but all bars are closed, skipping injection');
+        }
+      } else if (!isVisible && isInjected) {
+        // Cart drawer was closed, reset injection flag for next time
+        console.log('Anbar: Cart drawer closed, resetting injection flag');
+        isInjected = false;
       }
     }
   }
@@ -515,13 +608,27 @@ Description: JavaScript that automatically injects announcement bars into cart d
     setupObserver();
     interceptCartRequests();
     
+    // Set up global event delegation for cart drawer close buttons
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.classList.contains('anbar-cart-close')) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const barId = e.target.getAttribute('data-bar-id');
+        if (barId) {
+          console.log('Anbar: Closing cart drawer bar:', barId);
+          anbarCartDrawerClose(barId);
+        }
+      }
+    });
+    
     // Listen for common cart drawer events
     document.addEventListener('cart:updated', handleCartDrawerChange);
     document.addEventListener('cart:open', handleCartDrawerChange);
     document.addEventListener('drawer:open', handleCartDrawerChange);
     
-    // Check periodically for cart drawer visibility
-    setInterval(handleCartDrawerChange, 2000);
+    // Check periodically for cart drawer visibility (less frequent to avoid interference)
+    setInterval(handleCartDrawerChange, 5000);
   }
   
   // Start when DOM is ready
