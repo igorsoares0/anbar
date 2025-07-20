@@ -74,10 +74,16 @@ Description: Automatically displays active announcement bars based on their loca
   .anbar-title {
     font-weight: bold;
     margin: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   
   .anbar-subtitle {
     margin: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
   }
   
   .anbar-discount-code-container {
@@ -111,9 +117,13 @@ Description: Automatically displays active announcement bars based on their loca
     border: none;
     cursor: pointer;
     text-decoration: none;
-    display: inline-block;
-    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    min-height: 36px;
     transition: opacity 0.2s ease;
+    white-space: nowrap;
   }
   
   .anbar-button:hover {
@@ -126,13 +136,20 @@ Description: Automatically displays active announcement bars based on their loca
     line-height: 1;
     background: none;
     border: none;
-    padding: 0;
+    padding: 8px;
     margin: 0;
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: opacity 0.2s ease;
+    border-radius: 4px;
   }
   
   .anbar-close:hover {
     opacity: 0.7;
+    background-color: rgba(255, 255, 255, 0.1);
   }
   
   .anbar-clickable {
@@ -183,35 +200,177 @@ Description: Automatically displays active announcement bars based on their loca
     color: inherit;
     cursor: pointer;
     padding: 8px;
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 4px;
     transition: background-color 0.2s ease;
+    font-size: 16px;
   }
   
   .anbar-arrow:hover {
     background: rgba(255, 255, 255, 0.3);
   }
   
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    .anbar-continuous .anbar-content {
+      animation: none !important;
+    }
+    
+    .anbar-button, .anbar-close, .anbar-arrow {
+      transition: none !important;
+    }
+  }
+  
+  /* Tablet Responsive */
   @media (max-width: 768px) {
     .anbar-announcement-bar {
       flex-direction: column;
       text-align: center;
-      padding: 8px 12px;
+      padding: 10px 16px;
+      min-height: 60px;
     }
     
     .anbar-content {
       flex-direction: column;
-      gap: 4px;
-      margin-bottom: 8px;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    
+    .anbar-text-group {
+      max-width: calc(100vw - 100px);
+    }
+    
+    .anbar-title {
+      font-size: clamp(14px, 4vw, 18px) !important;
+    }
+    
+    .anbar-subtitle {
+      font-size: clamp(12px, 3.5vw, 16px) !important;
     }
     
     .anbar-actions {
       justify-content: center;
+      gap: 12px;
+    }
+    
+    .anbar-button {
+      padding: 12px 20px;
+      min-height: 44px;
+      font-size: 16px !important;
+    }
+    
+    .anbar-close {
+      min-width: 44px;
+      min-height: 44px;
+      font-size: 20px;
+      padding: 12px;
+    }
+    
+    .anbar-arrow {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 12px;
+      font-size: 18px;
+    }
+    
+    .anbar-discount-code-container {
+      padding: 10px 16px;
+      font-size: 14px !important;
+      margin: 4px 0;
     }
     
     .anbar-continuous .anbar-content {
       flex-direction: row;
       margin-bottom: 0;
-      animation: anbar-marquee 12s linear infinite;
+      animation: anbar-marquee 18s linear infinite;
+    }
+  }
+  
+  /* Mobile Responsive */
+  @media (max-width: 480px) {
+    .anbar-announcement-bar {
+      padding: 8px 12px;
+      min-height: 56px;
+    }
+    
+    .anbar-content {
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    
+    .anbar-text-group {
+      max-width: calc(100vw - 80px);
+    }
+    
+    .anbar-title {
+      font-size: clamp(13px, 3.5vw, 16px) !important;
+      line-height: 1.3;
+    }
+    
+    .anbar-subtitle {
+      font-size: clamp(11px, 3vw, 14px) !important;
+      line-height: 1.3;
+    }
+    
+    .anbar-actions {
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .anbar-button {
+      padding: 10px 16px;
+      min-height: 44px;
+      font-size: 15px !important;
+      flex: 1;
+      min-width: 120px;
+    }
+    
+    .anbar-close {
+      min-width: 44px;
+      min-height: 44px;
+      font-size: 18px;
+    }
+    
+    .anbar-arrow {
+      min-width: 40px;
+      min-height: 40px;
+      padding: 10px;
+    }
+    
+    .anbar-discount-code-container {
+      padding: 8px 12px;
+      font-size: 13px !important;
+      word-break: break-all;
+      max-width: 100%;
+    }
+    
+    .anbar-continuous .anbar-content {
+      animation: anbar-marquee 20s linear infinite;
+    }
+  }
+  
+  /* Very Small Screens */
+  @media (max-width: 320px) {
+    .anbar-announcement-bar {
+      padding: 6px 8px;
+    }
+    
+    .anbar-text-group {
+      max-width: calc(100vw - 60px);
+    }
+    
+    .anbar-button {
+      padding: 8px 12px;
+      font-size: 14px !important;
+      min-width: 100px;
+    }
+    
+    .anbar-actions {
+      gap: 6px;
     }
   }
 </style>

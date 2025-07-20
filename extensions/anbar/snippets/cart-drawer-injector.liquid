@@ -109,7 +109,12 @@ Description: JavaScript that automatically injects announcement bars into cart d
     }
     
     const css = `
-      /* Cart drawer specific continuous scroll fixes */
+      /* Cart drawer specific styling */
+      .anbar-cart-drawer-wrapper .anbar-announcement-bar {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+      }
+      
       .anbar-cart-drawer-wrapper .anbar-announcement-bar:not(.anbar-continuous) .anbar-content {
         display: flex !important;
         align-items: center !important;
@@ -150,6 +155,39 @@ Description: JavaScript that automatically injects announcement bars into cart d
         white-space: nowrap !important;
       }
       
+      /* Enhanced Touch Targets for Cart Drawer */
+      .anbar-cart-drawer-wrapper .anbar-close {
+        min-width: 36px !important;
+        min-height: 36px !important;
+        padding: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 4px !important;
+      }
+      
+      .anbar-cart-drawer-wrapper .anbar-close:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      
+      .anbar-cart-drawer-wrapper .anbar-button {
+        padding: 8px 16px !important;
+        min-height: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+      }
+      
+      .anbar-cart-drawer-wrapper .anbar-arrow {
+        min-width: 36px !important;
+        min-height: 36px !important;
+        padding: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      
       @keyframes anbar-marquee {
         0% { transform: translate3d(0, 0, 0); }
         100% { transform: translate3d(-100%, 0, 0); }
@@ -159,9 +197,146 @@ Description: JavaScript that automatically injects announcement bars into cart d
         animation-play-state: paused !important;
       }
       
-      @media (max-width: 768px) {
+      /* Reduced Motion Support for Cart Drawer */
+      @media (prefers-reduced-motion: reduce) {
         .anbar-cart-drawer-wrapper .anbar-continuous .anbar-content {
-          animation: anbar-marquee 12s linear infinite !important;
+          animation: none !important;
+        }
+      }
+      
+      /* Mobile Responsive for Cart Drawer */
+      @media (max-width: 768px) {
+        .anbar-cart-drawer-wrapper .anbar-announcement-bar {
+          padding: 10px 16px !important;
+          min-height: 60px !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-announcement-bar:not(.anbar-continuous) .anbar-content {
+          flex-direction: column !important;
+          gap: 6px !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-announcement-bar:not(.anbar-continuous) .anbar-text-group {
+          max-width: calc(100vw - 100px) !important;
+        }
+        
+        /* CRITICAL: Keep continuous scroll horizontal on mobile */
+        .anbar-cart-drawer-wrapper .anbar-continuous .anbar-content {
+          display: inline-block !important;
+          white-space: nowrap !important;
+          animation: anbar-marquee 18s linear infinite !important;
+          flex-direction: row !important;
+          gap: 0 !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-continuous .anbar-text-group {
+          display: inline-flex !important;
+          align-items: center !important;
+          flex-direction: row !important;
+          gap: 8px !important;
+          white-space: nowrap !important;
+          max-width: none !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-close {
+          min-width: 44px !important;
+          min-height: 44px !important;
+          font-size: 20px !important;
+          padding: 12px !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-button {
+          padding: 12px 20px !important;
+          min-height: 44px !important;
+          font-size: 16px !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-arrow {
+          min-width: 44px !important;
+          min-height: 44px !important;
+          padding: 12px !important;
+          font-size: 18px !important;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .anbar-cart-drawer-wrapper .anbar-announcement-bar {
+          padding: 8px 12px !important;
+          min-height: 56px !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-announcement-bar:not(.anbar-continuous) .anbar-content {
+          gap: 4px !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-announcement-bar:not(.anbar-continuous) .anbar-text-group {
+          max-width: calc(100vw - 80px) !important;
+        }
+        
+        /* CRITICAL: Keep continuous scroll horizontal on small mobile */
+        .anbar-cart-drawer-wrapper .anbar-continuous .anbar-content {
+          display: inline-block !important;
+          white-space: nowrap !important;
+          animation: anbar-marquee 20s linear infinite !important;
+          flex-direction: row !important;
+          gap: 0 !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-continuous .anbar-text-group {
+          display: inline-flex !important;
+          align-items: center !important;
+          flex-direction: row !important;
+          gap: 8px !important;
+          white-space: nowrap !important;
+          max-width: none !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-discount-code-container {
+          padding: 8px 12px !important;
+          font-size: 13px !important;
+          word-break: break-all !important;
+          max-width: 100% !important;
+        }
+        
+        /* Override any word-wrap for continuous scroll */
+        .anbar-cart-drawer-wrapper .anbar-continuous .anbar-title,
+        .anbar-cart-drawer-wrapper .anbar-continuous .anbar-subtitle {
+          word-wrap: normal !important;
+          overflow-wrap: normal !important;
+          white-space: nowrap !important;
+        }
+      }
+      
+      @media (max-width: 320px) {
+        .anbar-cart-drawer-wrapper .anbar-announcement-bar {
+          padding: 6px 8px !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-announcement-bar:not(.anbar-continuous) .anbar-text-group {
+          max-width: calc(100vw - 60px) !important;
+        }
+        
+        /* CRITICAL: Keep continuous scroll horizontal on very small screens */
+        .anbar-cart-drawer-wrapper .anbar-continuous .anbar-content {
+          display: inline-block !important;
+          white-space: nowrap !important;
+          flex-direction: row !important;
+          gap: 0 !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-continuous .anbar-text-group {
+          display: inline-flex !important;
+          align-items: center !important;
+          flex-direction: row !important;
+          gap: 6px !important;
+          white-space: nowrap !important;
+          max-width: none !important;
+        }
+        
+        .anbar-cart-drawer-wrapper .anbar-button {
+          padding: 8px 12px !important;
+          font-size: 14px !important;
+          min-width: 100px !important;
         }
       }
     `;
