@@ -366,8 +366,9 @@ export default function EditAnnouncementBar() {
   const displayLocationOptions = [
     { label: "All pages", value: "all_pages" },
     { label: "Homepage only", value: "homepage" },
+    { label: "All product pages", value: "products" },
     { label: "All products in specific collections", value: "collections" },
-    { label: "Specific product pages", value: "products" },
+    { label: "Specific product pages", value: "specific_products" },
     { label: "All collection pages", value: "all_collections" },
     { label: "Specific collection pages", value: "specific_collections" },
     { label: "Cart page", value: "cart" },
@@ -967,7 +968,7 @@ export default function EditAnnouncementBar() {
                     name="displayLocation"
                   />
 
-                  {displayLocation === "products" && (
+                  {displayLocation === "specific_products" && (
                     <div>
                       <Text as="p" variant="bodyMd" tone="subdued">
                         Select specific products where the announcement bar should appear
@@ -1090,7 +1091,11 @@ export default function EditAnnouncementBar() {
                       formData.append("buttonTextColor", convertHsvaToHex(buttonTextColor));
                       formData.append("buttonBorderRadius", buttonBorderRadius.toString());
                       formData.append("displayLocation", displayLocation);
-                      formData.append("targetProducts", JSON.stringify(selectedProducts.map(p => p.id)));
+                      formData.append("targetProducts", JSON.stringify(selectedProducts.map(p => {
+                        // Extract numeric ID from GID if needed
+                        const id = p.id.toString();
+                        return id.includes('gid://') ? id.split('/').pop() : id;
+                      })));
                       formData.append("targetCollections", JSON.stringify(selectedCollections.map(c => c.id)));
                       formData.append("isPublished", isPublished ? "on" : "");
                       

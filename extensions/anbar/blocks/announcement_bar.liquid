@@ -406,9 +406,16 @@ Description: Displays an announcement bar with customizable styling and content
           {%- when 'specific_products' -%}
             {%- if template.name == 'product' -%}
               {%- if bar.targetProducts -%}
+                {% comment %} Debug: Show what we're comparing {% endcomment %}
+                <!-- DEBUG APPBLOCK: Current product ID: {{ product.id }} -->
+                <!-- DEBUG APPBLOCK: Target products: {{ bar.targetProducts | join: ', ' }} -->
                 {%- for product_id in bar.targetProducts -%}
-                  {%- if product.id == product_id -%}
+                  {%- assign current_product_id = product.id | plus: 0 -%}
+                  {%- assign target_product_id = product_id | plus: 0 -%}
+                  <!-- DEBUG APPBLOCK: Comparing {{ current_product_id }} with {{ target_product_id }} -->
+                  {%- if current_product_id == target_product_id -%}
                     {%- assign show_bar = true -%}
+                    <!-- DEBUG APPBLOCK: MATCH FOUND! -->
                     {%- break -%}
                   {%- endif -%}
                 {%- endfor -%}
