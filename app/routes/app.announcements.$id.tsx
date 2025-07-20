@@ -367,10 +367,8 @@ export default function EditAnnouncementBar() {
     { label: "All pages", value: "all_pages" },
     { label: "Homepage only", value: "homepage" },
     { label: "All product pages", value: "products" },
-    { label: "All products in specific collections", value: "collections" },
     { label: "Specific product pages", value: "specific_products" },
     { label: "All collection pages", value: "all_collections" },
-    { label: "Specific collection pages", value: "specific_collections" },
     { label: "Cart page", value: "cart" },
     { label: "Custom position", value: "custom" },
   ];
@@ -991,28 +989,6 @@ export default function EditAnnouncementBar() {
                     </div>
                   )}
 
-                  {displayLocation === "collections" && (
-                    <div>
-                      <Text as="p" variant="bodyMd" tone="subdued">
-                        Select collections - announcement bar will appear on all products in these collections
-                      </Text>
-                      <div style={{ marginTop: "8px" }}>
-                        <Button onClick={openCollectionPicker}>
-                          {selectedCollections.length > 0 
-                            ? `${selectedCollections.length} collection${selectedCollections.length > 1 ? 's' : ''} selected`
-                            : "Select collections"
-                          }
-                        </Button>
-                      </div>
-                      {selectedCollections.length > 0 && (
-                        <div style={{ marginTop: "8px" }}>
-                          <Text as="p" variant="bodySm">
-                            Selected: {selectedCollections.map(c => c.title).join(", ")}
-                          </Text>
-                        </div>
-                      )}
-                    </div>
-                  )}
 
                   {displayLocation === "custom" && (
                     <div style={{ 
