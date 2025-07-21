@@ -16,8 +16,10 @@ import {
   BlockStack,
   Box,
   Divider,
+  Thumbnail,
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
+import { ArrowLeftIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { syncAnnouncementBarsToMetafields } from "../utils/syncAnnouncementBars.server";
@@ -73,7 +75,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       console.warn("Failed to sync announcement bars after creation:", syncResult.error);
     }
 
-    return redirect(`/app/announcements/${announcementBar.id}`);
+    return json({ success: true, announcementBarId: announcementBar.id });
   } catch (error) {
     console.error("Creation error:", error);
     return json({ error: `Failed to create announcement bar: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 400 });
@@ -86,6 +88,17 @@ export default function NewAnnouncementBar() {
   const submit = useSubmit();
   const shopify = useAppBridge();
   const isLoading = navigation.state === "submitting";
+
+  // Redirect to edit page after successful creation
+  useEffect(() => {
+    if (actionData?.success && actionData?.announcementBarId) {
+      const timer = setTimeout(() => {
+        window.location.href = `/app/announcements/${actionData.announcementBarId}`;
+      }, 2000); // Show success message for 2 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [actionData]);
 
   // Form state
   const [name, setName] = useState("");
@@ -381,6 +394,15 @@ export default function NewAnnouncementBar() {
         title="Create announcement bar"
         breadcrumbs={[{ content: "Announcement bars", url: "/app/announcements" }]}
       />
+      <div style={{ padding: "16px 20px 0 20px" }}>
+        <Button
+          icon={ArrowLeftIcon}
+          variant="tertiary"
+          size="micro"
+          url="/app/announcements"
+          accessibilityLabel="Back to announcements"
+        />
+      </div>
       <div className="announcement-editor-layout">
         <div className="editor-form-column">
           <Form method="post">
@@ -852,11 +874,45 @@ export default function NewAnnouncementBar() {
                         </Button>
                       </div>
                       {selectedProducts.length > 0 && (
-                        <div style={{ marginTop: "8px" }}>
-                          <Text as="p" variant="bodySm">
-                            Selected: {selectedProducts.map(p => p.title).join(", ")}
+                        <Box paddingBlockStart="300">
+                          <Text as="p" variant="bodySm" fontWeight="medium">
+                            Selected products:
                           </Text>
-                        </div>
+                          <Box paddingBlockStart="200">
+                            {selectedProducts.map((product, index) => (
+                              <div key={product.id} style={{ 
+                                display: "flex", 
+                                justifyContent: "space-between", 
+                                alignItems: "center", 
+                                padding: "12px", 
+                                backgroundColor: "#f6f6f7", 
+                                borderRadius: "8px",
+                                marginBottom: index < selectedProducts.length - 1 ? "6px" : "0"
+                              }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                  <Thumbnail
+                                    source={product.featuredImage?.url || 'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'}
+                                    alt={product.featuredImage?.altText || product.title}
+                                    size="small"
+                                  />
+                                  <Text as="span" variant="bodySm" fontWeight="medium">
+                                    {product.title}
+                                  </Text>
+                                </div>
+                                <Button
+                                  variant="tertiary"
+                                  size="micro"
+                                  onClick={() => {
+                                    const updatedProducts = selectedProducts.filter(p => p.id !== product.id);
+                                    setSelectedProducts(updatedProducts);
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                          </Box>
+                        </Box>
                       )}
                     </div>
                   )}
@@ -902,6 +958,12 @@ export default function NewAnnouncementBar() {
                 {actionData?.error && (
                   <Text as="p" variant="bodyMd" tone="critical">
                     {actionData.error}
+                  </Text>
+                )}
+
+                {actionData?.success && (
+                  <Text as="p" variant="bodyMd" tone="success">
+                    Announcement bar created successfully!
                   </Text>
                 )}
 

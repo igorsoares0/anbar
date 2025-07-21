@@ -18,16 +18,17 @@ import {
   InlineStack,
   Icon,
   Tooltip,
+  Thumbnail,
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
-import { ClipboardIcon } from "@shopify/polaris-icons";
+import { ClipboardIcon, ArrowLeftIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { syncAnnouncementBarsToMetafields } from "../utils/syncAnnouncementBars.server";
 import { useState, useCallback, useEffect } from "react";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { session } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const { id } = params;
 
   const announcementBar = await prisma.announcementBar.findFirst({
@@ -38,7 +39,41 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     throw new Response("Not found", { status: 404 });
   }
 
-  return json({ announcementBar });
+  // Fetch product details for selected products if they exist
+  let selectedProductsDetails = [];
+  if (announcementBar.targetProducts && announcementBar.targetProducts.length > 0) {
+    try {
+      const productIds = announcementBar.targetProducts.map((id: string) => `gid://shopify/Product/${id}`);
+      const query = `
+        query getProducts($ids: [ID!]!) {
+          nodes(ids: $ids) {
+            ... on Product {
+              id
+              title
+              handle
+              featuredImage {
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+        }
+      `;
+      
+      const response = await admin.graphql(query, {
+        variables: { ids: productIds }
+      });
+      
+      const data = await response.json();
+      selectedProductsDetails = data.data?.nodes || [];
+    } catch (error) {
+      console.error("Error fetching product details:", error);
+    }
+  }
+
+  return json({ announcementBar, selectedProductsDetails });
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
@@ -139,7 +174,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function EditAnnouncementBar() {
-  const { announcementBar } = useLoaderData<typeof loader>();
+  const { announcementBar, selectedProductsDetails } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -225,6 +260,13 @@ export default function EditAnnouncementBar() {
   const [displayLocation, setDisplayLocation] = useState(announcementBar.displayLocation);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [selectedCollections, setSelectedCollections] = useState<any[]>([]);
+
+  // Initialize selected products from existing targetProducts
+  useEffect(() => {
+    if (selectedProductsDetails && selectedProductsDetails.length > 0) {
+      setSelectedProducts(selectedProductsDetails);
+    }
+  }, [selectedProductsDetails]);
   const [isPublished, setIsPublished] = useState(announcementBar.isPublished);
 
   // Sync hex values when colors change
@@ -465,6 +507,15 @@ export default function EditAnnouncementBar() {
           },
         ]}
       />
+      <div style={{ padding: "16px 20px 0 20px" }}>
+        <Button
+          icon={ArrowLeftIcon}
+          variant="tertiary"
+          size="micro"
+          url="/app/announcements"
+          accessibilityLabel="Back to announcements"
+        />
+      </div>
       <div className="announcement-editor-layout">
         <div className="editor-form-column">
           <Form method="post">
@@ -980,11 +1031,45 @@ export default function EditAnnouncementBar() {
                         </Button>
                       </div>
                       {selectedProducts.length > 0 && (
-                        <div style={{ marginTop: "8px" }}>
-                          <Text as="p" variant="bodySm">
-                            Selected: {selectedProducts.map(p => p.title).join(", ")}
+                        <Box paddingBlockStart="300">
+                          <Text as="p" variant="bodySm" fontWeight="medium">
+                            Selected products:
                           </Text>
-                        </div>
+                          <Box paddingBlockStart="200">
+                            {selectedProducts.map((product, index) => (
+                              <div key={product.id} style={{ 
+                                display: "flex", 
+                                justifyContent: "space-between", 
+                                alignItems: "center", 
+                                padding: "12px", 
+                                backgroundColor: "#f6f6f7", 
+                                borderRadius: "8px",
+                                marginBottom: index < selectedProducts.length - 1 ? "6px" : "0"
+                              }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                  <Thumbnail
+                                    source={product.featuredImage?.url || 'https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png'}
+                                    alt={product.featuredImage?.altText || product.title}
+                                    size="small"
+                                  />
+                                  <Text as="span" variant="bodySm" fontWeight="medium">
+                                    {product.title}
+                                  </Text>
+                                </div>
+                                <Button
+                                  variant="tertiary"
+                                  size="micro"
+                                  onClick={() => {
+                                    const updatedProducts = selectedProducts.filter(p => p.id !== product.id);
+                                    setSelectedProducts(updatedProducts);
+                                  }}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                          </Box>
+                        </Box>
                       )}
                     </div>
                   )}
