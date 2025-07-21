@@ -228,7 +228,6 @@ export default function NewAnnouncementBar() {
   const announcementTypeOptions = [
     { label: "Simple", value: "simple" },
     { label: "Continuous scroll", value: "continuous" },
-    { label: "Multiple with arrows", value: "multiple" },
   ];
 
   const callToActionOptions = [
