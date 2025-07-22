@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { useActionData, useNavigation, Form, useSubmit } from "@remix-run/react";
 import {
   Page,
@@ -11,7 +11,6 @@ import {
   Button,
   ButtonGroup,
   ColorPicker,
-  RangeSlider,
   Text,
   BlockStack,
   Box,
@@ -91,7 +90,7 @@ export default function NewAnnouncementBar() {
 
   // Redirect to edit page after successful creation
   useEffect(() => {
-    if (actionData?.success && actionData?.announcementBarId) {
+    if (actionData && 'success' in actionData && actionData.success && 'announcementBarId' in actionData && actionData.announcementBarId) {
       const timer = setTimeout(() => {
         window.location.href = `/app/announcements/${actionData.announcementBarId}`;
       }, 2000); // Show success message for 2 seconds
@@ -104,8 +103,8 @@ export default function NewAnnouncementBar() {
   const [name, setName] = useState("");
   const [announcementType, setAnnouncementType] = useState("simple");
   const [title, setTitle] = useState("Free shipping on orders over $50!");
-  const [subtitle, setSubtitle] = useState("Limited time offer");
-  const [discountCode, setDiscountCode] = useState("SAVE50");
+  const [subtitle, setSubtitle] = useState("");
+  const [discountCode, setDiscountCode] = useState("");
   const [callToAction, setCallToAction] = useState("button");
   const [link, setLink] = useState("");
   const [showCloseIcon, setShowCloseIcon] = useState(false);
@@ -141,7 +140,7 @@ export default function NewAnnouncementBar() {
   const [buttonBorderRadius, setButtonBorderRadius] = useState(4);
   const [displayLocation, setDisplayLocation] = useState("all_pages");
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [selectedCollections, setSelectedCollections] = useState<any[]>([]);
+  const [selectedCollections] = useState<any[]>([]);
   const [isPublished, setIsPublished] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
@@ -186,17 +185,6 @@ export default function NewAnnouncementBar() {
     });
   }, [shopify]);
 
-  const openCollectionPicker = useCallback(() => {
-    shopify.resourcePicker({
-      type: "collection",
-      multiple: true,
-      action: "select",
-    }).then((selection) => {
-      setSelectedCollections(selection || []);
-    }).catch((error) => {
-      console.log('Collection picker cancelled or error:', error);
-    });
-  }, [shopify]);
 
   const validateForm = useCallback(() => {
     const newErrors: {[key: string]: string} = {};
@@ -391,7 +379,6 @@ export default function NewAnnouncementBar() {
     <Page>
       <TitleBar
         title="Create announcement bar"
-        breadcrumbs={[{ content: "Announcement bars", url: "/app/announcements" }]}
       />
       <div style={{ padding: "16px 20px 0 20px" }}>
         <Button
@@ -418,8 +405,8 @@ export default function NewAnnouncementBar() {
                     value={name}
                     onChange={setName}
                     name="name"
-                    required
                     error={errors.name}
+                    autoComplete="off"
                   />
 
                   <Select
@@ -436,6 +423,7 @@ export default function NewAnnouncementBar() {
                     onChange={setTitle}
                     name="title"
                     error={errors.content && !title.trim() && !subtitle.trim() ? errors.content : undefined}
+                    autoComplete="off"
                   />
 
                   <TextField
@@ -444,6 +432,7 @@ export default function NewAnnouncementBar() {
                     onChange={setSubtitle}
                     name="subtitle"
                     error={errors.content && !title.trim() && !subtitle.trim() ? errors.content : undefined}
+                    autoComplete="off"
                   />
 
                   <TextField
@@ -451,6 +440,7 @@ export default function NewAnnouncementBar() {
                     value={discountCode}
                     onChange={setDiscountCode}
                     name="discountCode"
+                    autoComplete="off"
                   />
 
                   <Select
@@ -469,6 +459,7 @@ export default function NewAnnouncementBar() {
                       name="link"
                       placeholder="https://"
                       error={errors.link}
+                      autoComplete="off"
                     />
                   )}
 
@@ -521,6 +512,8 @@ export default function NewAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showBackgroundColorPicker && (
@@ -541,6 +534,7 @@ export default function NewAnnouncementBar() {
                     value={borderRadius.toString()}
                     onChange={(value) => setBorderRadius(parseInt(value) || 0)}
                     name="borderRadius"
+                    autoComplete="off"
                   />
 
                   <TextField
@@ -549,6 +543,7 @@ export default function NewAnnouncementBar() {
                     value={borderWidth.toString()}
                     onChange={(value) => setBorderWidth(parseInt(value) || 0)}
                     name="borderWidth"
+                    autoComplete="off"
                   />
 
                   <Box>
@@ -577,6 +572,8 @@ export default function NewAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showBorderColorPicker && (
@@ -605,6 +602,7 @@ export default function NewAnnouncementBar() {
                     value={titleSize.toString()}
                     onChange={(value) => setTitleSize(parseInt(value) || 16)}
                     name="titleSize"
+                    autoComplete="off"
                   />
 
                   <Box>
@@ -633,6 +631,8 @@ export default function NewAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showTitleColorPicker && (
@@ -653,6 +653,7 @@ export default function NewAnnouncementBar() {
                     value={subtitleSize.toString()}
                     onChange={(value) => setSubtitleSize(parseInt(value) || 14)}
                     name="subtitleSize"
+                    autoComplete="off"
                   />
 
                   <Box>
@@ -681,6 +682,8 @@ export default function NewAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showSubtitleColorPicker && (
@@ -721,6 +724,8 @@ export default function NewAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showDiscountCodeColorPicker && (
@@ -743,6 +748,7 @@ export default function NewAnnouncementBar() {
                         onChange={setButtonText}
                         name="buttonText"
                         placeholder="Shop Now"
+                        autoComplete="off"
                       />
 
                       <Box>
@@ -771,6 +777,8 @@ export default function NewAnnouncementBar() {
                             }}
                             placeholder="#8340aa"
                             connectedLeft
+                            label=""
+                            autoComplete="off"
                           />
                         </div>
                         {showButtonColorPicker && (
@@ -791,6 +799,7 @@ export default function NewAnnouncementBar() {
                         value={buttonTextSize.toString()}
                         onChange={(value) => setButtonTextSize(parseInt(value) || 14)}
                         name="buttonTextSize"
+                        autoComplete="off"
                       />
 
                       <Box>
@@ -819,6 +828,8 @@ export default function NewAnnouncementBar() {
                             }}
                             placeholder="#8340aa"
                             connectedLeft
+                            label=""
+                            autoComplete="off"
                           />
                         </div>
                         {showButtonTextColorPicker && (
@@ -839,6 +850,7 @@ export default function NewAnnouncementBar() {
                         value={buttonBorderRadius.toString()}
                         onChange={(value) => setButtonBorderRadius(parseInt(value) || 4)}
                         name="buttonBorderRadius"
+                        autoComplete="off"
                       />
                     </>
                   )}
@@ -918,28 +930,25 @@ export default function NewAnnouncementBar() {
 
 
                   {displayLocation === "custom" && (
-                    <div style={{ 
-                      padding: "12px 16px", 
-                      backgroundColor: "#fef7e0", 
-                      borderRadius: "8px",
-                      border: "1px solid #f1c40f"
-                    }}>
+                    <Box padding="400" background="bg-surface-caution" borderRadius="200" borderColor="border-caution">
                       <Text as="p" variant="bodyMd" fontWeight="medium">
                         Custom Positioning Instructions
                       </Text>
-                      <Text as="p" variant="bodySm" style={{ marginTop: "8px" }}>
-                        1. After creating this announcement bar, note its unique ID
-                      </Text>
-                      <Text as="p" variant="bodySm">
-                        2. Go to your theme customizer
-                      </Text>
-                      <Text as="p" variant="bodySm">
-                        3. Add the "Announcement Bar" app block where you want it to appear
-                      </Text>
-                      <Text as="p" variant="bodySm">
-                        4. Enter the announcement bar ID in the block settings
-                      </Text>
-                    </div>
+                      <Box paddingBlockStart="200">
+                        <Text as="p" variant="bodySm">
+                          1. After creating this announcement bar, note its unique ID
+                        </Text>
+                        <Text as="p" variant="bodySm">
+                          2. Go to your theme customizer
+                        </Text>
+                        <Text as="p" variant="bodySm">
+                          3. Add the "Announcement Bar" app block where you want it to appear
+                        </Text>
+                        <Text as="p" variant="bodySm">
+                          4. Enter the announcement bar ID in the block settings
+                        </Text>
+                      </Box>
+                    </Box>
                   )}
                 </FormLayout>
 
@@ -954,13 +963,13 @@ export default function NewAnnouncementBar() {
                   />
                 </FormLayout>
 
-                {actionData?.error && (
+                {actionData && 'error' in actionData && actionData.error && (
                   <Text as="p" variant="bodyMd" tone="critical">
                     {actionData.error}
                   </Text>
                 )}
 
-                {actionData?.success && (
+                {actionData && 'success' in actionData && actionData.success && (
                   <Text as="p" variant="bodyMd" tone="success">
                     Announcement bar created successfully!
                   </Text>

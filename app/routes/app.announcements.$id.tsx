@@ -16,7 +16,6 @@ import {
   Box,
   Divider,
   InlineStack,
-  Icon,
   Tooltip,
   Thumbnail,
 } from "@shopify/polaris";
@@ -41,9 +40,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   // Fetch product details for selected products if they exist
   let selectedProductsDetails = [];
-  if (announcementBar.targetProducts && announcementBar.targetProducts.length > 0) {
+  if (announcementBar.targetProducts && Array.isArray(announcementBar.targetProducts) && announcementBar.targetProducts.length > 0) {
     try {
-      const productIds = announcementBar.targetProducts.map((id: string) => `gid://shopify/Product/${id}`);
+      const productIds = (announcementBar.targetProducts as string[]).map((id: string) => `gid://shopify/Product/${id}`);
       const query = `
         query getProducts($ids: [ID!]!) {
           nodes(ids: $ids) {
@@ -259,7 +258,7 @@ export default function EditAnnouncementBar() {
   const [buttonBorderRadius, setButtonBorderRadius] = useState(announcementBar.buttonBorderRadius);
   const [displayLocation, setDisplayLocation] = useState(announcementBar.displayLocation);
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-  const [selectedCollections, setSelectedCollections] = useState<any[]>([]);
+  const [selectedCollections] = useState<any[]>([]);
 
   // Initialize selected products from existing targetProducts
   useEffect(() => {
@@ -298,33 +297,6 @@ export default function EditAnnouncementBar() {
     setButtonTextColorHex(convertHsvaToHex(buttonTextColor));
   }, [buttonTextColor]);
 
-  function hexToHsva(hex: string) {
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    const diff = max - min;
-
-    let hue = 0;
-    if (diff !== 0) {
-      if (max === r) {
-        hue = ((g - b) / diff) % 6;
-      } else if (max === g) {
-        hue = (b - r) / diff + 2;
-      } else {
-        hue = (r - g) / diff + 4;
-      }
-    }
-    hue = Math.round(hue * 60);
-    if (hue < 0) hue += 360;
-
-    const saturation = max === 0 ? 0 : (diff / max);
-    const brightness = max;
-
-    return { hue, saturation, brightness, alpha: 1 };
-  }
 
   const convertHsvaToHex = (hsva: any) => {
     const h = hsva.hue || 0;
@@ -369,17 +341,6 @@ export default function EditAnnouncementBar() {
     });
   }, [shopify]);
 
-  const openCollectionPicker = useCallback(() => {
-    shopify.resourcePicker({
-      type: "collection",
-      multiple: true,
-      action: "select",
-    }).then((selection) => {
-      setSelectedCollections(selection || []);
-    }).catch((error) => {
-      console.log('Collection picker cancelled or error:', error);
-    });
-  }, [shopify]);
 
   const announcementTypeOptions = [
     { label: "Simple", value: "simple" },
@@ -477,34 +438,6 @@ export default function EditAnnouncementBar() {
     <Page>
       <TitleBar
         title={`Edit: ${announcementBar.name}`}
-        breadcrumbs={[{ content: "Announcement bars", url: "/app/announcements" }]}
-        secondaryActions={[
-          {
-            content: announcementBar.isActive ? "Deactivate" : "Activate",
-            onAction: () => {
-              const formData = new FormData();
-              formData.append("_action", "toggle");
-              fetch(`/app/announcements/${announcementBar.id}`, {
-                method: "POST",
-                body: formData,
-              }).then(() => window.location.reload());
-            },
-          },
-          {
-            content: "Delete",
-            destructive: true,
-            onAction: () => {
-              if (confirm("Are you sure you want to delete this announcement bar?")) {
-                const formData = new FormData();
-                formData.append("_action", "delete");
-                fetch(`/app/announcements/${announcementBar.id}`, {
-                  method: "POST",
-                  body: formData,
-                }).then(() => window.location.href = "/app/announcements");
-              }
-            },
-          },
-        ]}
       />
       <div style={{ padding: "16px 20px 0 20px" }}>
         <Button
@@ -579,7 +512,7 @@ export default function EditAnnouncementBar() {
                     value={name}
                     onChange={setName}
                     name="name"
-                    required
+                    autoComplete="off"
                   />
 
                   <Select
@@ -595,6 +528,7 @@ export default function EditAnnouncementBar() {
                     value={title}
                     onChange={setTitle}
                     name="title"
+                    autoComplete="off"
                   />
 
                   <TextField
@@ -602,6 +536,7 @@ export default function EditAnnouncementBar() {
                     value={subtitle}
                     onChange={setSubtitle}
                     name="subtitle"
+                    autoComplete="off"
                   />
 
                   <TextField
@@ -609,6 +544,7 @@ export default function EditAnnouncementBar() {
                     value={discountCode}
                     onChange={setDiscountCode}
                     name="discountCode"
+                    autoComplete="off"
                   />
 
                   <Select
@@ -626,6 +562,7 @@ export default function EditAnnouncementBar() {
                       onChange={setLink}
                       name="link"
                       placeholder="https://"
+                      autoComplete="off"
                     />
                   )}
 
@@ -678,6 +615,8 @@ export default function EditAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showBackgroundColorPicker && (
@@ -698,6 +637,7 @@ export default function EditAnnouncementBar() {
                     value={borderRadius.toString()}
                     onChange={(value) => setBorderRadius(parseInt(value) || 0)}
                     name="borderRadius"
+                    autoComplete="off"
                   />
 
                   <TextField
@@ -706,6 +646,7 @@ export default function EditAnnouncementBar() {
                     value={borderWidth.toString()}
                     onChange={(value) => setBorderWidth(parseInt(value) || 0)}
                     name="borderWidth"
+                    autoComplete="off"
                   />
 
                   <Box>
@@ -734,6 +675,8 @@ export default function EditAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showBorderColorPicker && (
@@ -762,6 +705,7 @@ export default function EditAnnouncementBar() {
                     value={titleSize.toString()}
                     onChange={(value) => setTitleSize(parseInt(value) || 16)}
                     name="titleSize"
+                    autoComplete="off"
                   />
 
                   <Box>
@@ -790,6 +734,8 @@ export default function EditAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showTitleColorPicker && (
@@ -810,6 +756,7 @@ export default function EditAnnouncementBar() {
                     value={subtitleSize.toString()}
                     onChange={(value) => setSubtitleSize(parseInt(value) || 14)}
                     name="subtitleSize"
+                    autoComplete="off"
                   />
 
                   <Box>
@@ -838,6 +785,8 @@ export default function EditAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showSubtitleColorPicker && (
@@ -878,6 +827,8 @@ export default function EditAnnouncementBar() {
                         }}
                         placeholder="#8340aa"
                         connectedLeft
+                        label=""
+                        autoComplete="off"
                       />
                     </div>
                     {showDiscountCodeColorPicker && (
@@ -900,6 +851,7 @@ export default function EditAnnouncementBar() {
                         onChange={setButtonText}
                         name="buttonText"
                         placeholder="Shop Now"
+                        autoComplete="off"
                       />
 
                       <Box>
@@ -928,6 +880,8 @@ export default function EditAnnouncementBar() {
                             }}
                             placeholder="#8340aa"
                             connectedLeft
+                        label=""
+                        autoComplete="off"
                           />
                         </div>
                         {showButtonColorPicker && (
@@ -948,6 +902,7 @@ export default function EditAnnouncementBar() {
                         value={buttonTextSize.toString()}
                         onChange={(value) => setButtonTextSize(parseInt(value) || 14)}
                         name="buttonTextSize"
+                        autoComplete="off"
                       />
 
                       <Box>
@@ -976,6 +931,8 @@ export default function EditAnnouncementBar() {
                             }}
                             placeholder="#8340aa"
                             connectedLeft
+                        label=""
+                        autoComplete="off"
                           />
                         </div>
                         {showButtonTextColorPicker && (
@@ -996,6 +953,7 @@ export default function EditAnnouncementBar() {
                         value={buttonBorderRadius.toString()}
                         onChange={(value) => setButtonBorderRadius(parseInt(value) || 4)}
                         name="buttonBorderRadius"
+                        autoComplete="off"
                       />
                     </>
                   )}
@@ -1084,9 +1042,11 @@ export default function EditAnnouncementBar() {
                       <Text as="p" variant="bodyMd" fontWeight="medium">
                         Custom Positioning Instructions
                       </Text>
-                      <Text as="p" variant="bodySm" style={{ marginTop: "8px" }}>
-                        1. Go to your theme customizer
-                      </Text>
+                      <Box paddingBlockStart="200">
+                        <Text as="p" variant="bodySm">
+                          1. Go to your theme customizer
+                        </Text>
+                      </Box>
                       <Text as="p" variant="bodySm">
                         2. Add the "Announcement Bar" app block where you want it to appear
                       </Text>
@@ -1108,13 +1068,13 @@ export default function EditAnnouncementBar() {
                   />
                 </FormLayout>
 
-                {actionData?.error && (
+                {actionData && 'error' in actionData && actionData.error && (
                   <Text as="p" variant="bodyMd" tone="critical">
                     {actionData.error}
                   </Text>
                 )}
 
-                {actionData?.success && (
+                {actionData && 'success' in actionData && actionData.success && (
                   <Text as="p" variant="bodyMd" tone="success">
                     Announcement bar updated successfully!
                   </Text>
@@ -1168,8 +1128,7 @@ export default function EditAnnouncementBar() {
                   <Button 
                     variant="primary"
                     tone="critical"
-                    onClick={(e) => {
-                      e.preventDefault();
+                    onClick={() => {
                       if (confirm(`Are you sure you want to delete "${announcementBar.name}"? This action cannot be undone.`)) {
                         const formData = new FormData();
                         formData.append("_action", "delete");

@@ -117,6 +117,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ success: true, bars: announcementBars, metafields: result });
   } catch (error) {
     console.error("Error syncing announcement bars:", error);
-    return json({ success: false, error: error.message });
+    return json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };
