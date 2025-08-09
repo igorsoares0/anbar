@@ -382,7 +382,7 @@ Description: Automatically displays active announcement bars based on their loca
 </style>
 
 {%- assign announcement_bars = shop.metafields.anbar.bars.value -%}
-{%- if settings.enabled != false and announcement_bars -%}
+{%- if announcement_bars -%}
   {%- for bar in announcement_bars -%}
     {%- if bar.isActive and bar.isPublished -%}
       {%- assign show_bar = false -%}
@@ -637,14 +637,6 @@ Description: Automatically displays active announcement bars based on their loca
 {
   "name": "Announcement Bars (Auto)",
   "target": "body",
-  "settings": [
-    {
-      "type": "checkbox",
-      "id": "enabled",
-      "label": "Enable announcement bars",
-      "default": true,
-      "info": "Automatically show announcement bars based on their location settings"
-    }
-  ]
+  "settings": []
 }
 {% endschema %}
