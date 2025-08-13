@@ -81,3 +81,21 @@ model AnnouncementBar {
   @@index([shop])
   @@index([shop, isActive])
 }
+
+model Subscription {
+  id                String   @id @default(cuid())
+  shop              String   @unique
+  planId            String   // "free", "monthly", "annual"
+  status            String   @default("active") // "active", "cancelled", "expired", "pending"
+  billingType       String   @default("free") // "free", "recurring"
+  chargeId          String?  // Shopify charge ID for recurring charges
+  currentPeriodStart DateTime?
+  currentPeriodEnd  DateTime?
+  trialEnd          DateTime?
+  maxAnnouncements  Int      @default(1) // Free tier: 1, Paid: unlimited (-1)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([shop])
+}

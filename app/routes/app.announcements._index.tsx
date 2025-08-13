@@ -1,16 +1,14 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData, Link } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import {
   Page,
   Layout,
   Card,
   Button,
-  DataTable,
   Badge,
   EmptyState,
   Text,
-  Icon,
   Tooltip,
   Box,
   InlineStack,
@@ -18,29 +16,35 @@ import {
   ResourceList,
   ResourceItem,
   Thumbnail,
+  Banner,
 } from "@shopify/polaris";
 import {
   EditIcon,
-  DuplicateIcon,
-  ViewIcon,
 } from "@shopify/polaris-icons";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import { checkAnnouncementLimit } from "../utils/billing.server";
+import { autoSyncSubscription } from "../utils/auto-sync.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
+  
+  // Auto-sync subscription to ensure accurate limits
+  await autoSyncSubscription(request);
   
   const announcementBars = await prisma.announcementBar.findMany({
     where: { shop: session.shop },
     orderBy: { createdAt: "desc" },
   });
 
-  return json({ announcementBars });
+  const limitCheck = await checkAnnouncementLimit(session.shop);
+
+  return json({ announcementBars, limitCheck });
 };
 
 export default function AnnouncementBarsIndex() {
-  const { announcementBars } = useLoaderData<typeof loader>();
+  const { announcementBars, limitCheck } = useLoaderData<typeof loader>();
 
   const getTypeVariant = (type: string) => {
     switch (type) {
@@ -70,6 +74,24 @@ export default function AnnouncementBarsIndex() {
       />
       <Layout>
         <Layout.Section>
+          {limitCheck.subscription.planId === "free" && (
+            <Banner
+              title={`Free Plan - ${limitCheck.remainingCount} of ${limitCheck.subscription.maxAnnouncements} announcement bar${limitCheck.subscription.maxAnnouncements !== 1 ? 's' : ''} remaining`}
+              status={limitCheck.isLimitReached ? "warning" : "info"}
+              action={{
+                content: "Upgrade Plan",
+                url: "/app/billing",
+              }}
+            >
+              <p>
+                {limitCheck.isLimitReached 
+                  ? "You've reached your free plan limit. Upgrade to create unlimited announcement bars."
+                  : "Upgrade to Pro for unlimited announcement bars and advanced features."
+                }
+              </p>
+            </Banner>
+          )}
+          
           {announcementBars.length === 0 ? (
             <Card>
               <EmptyState

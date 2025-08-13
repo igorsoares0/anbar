@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useActionData, useNavigation, Form, useSubmit } from "@remix-run/react";
+import { useActionData, useNavigation, Form, useSubmit, useLoaderData } from "@remix-run/react";
 import {
   Page,
   Card,
@@ -16,22 +16,34 @@ import {
   Box,
   Divider,
   Thumbnail,
+  Banner,
+  Link,
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { ArrowLeftIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import { syncAnnouncementBarsToMetafields } from "../utils/syncAnnouncementBars.server";
+import { checkAnnouncementLimit } from "../utils/billing.server";
 import { useState, useCallback, useEffect } from "react";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
-  return json({});
+  const { session } = await authenticate.admin(request);
+  const limitCheck = await checkAnnouncementLimit(session.shop);
+  return json({ limitCheck });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
   const formData = await request.formData();
+
+  const limitCheck = await checkAnnouncementLimit(session.shop);
+  if (limitCheck.isLimitReached) {
+    return json({ 
+      error: `You have reached your announcement bar limit (${limitCheck.subscription.maxAnnouncements}). Please upgrade your plan to create more announcement bars.`,
+      needsUpgrade: true 
+    }, { status: 400 });
+  }
 
   try {
     const announcementBar = await prisma.announcementBar.create({
@@ -82,6 +94,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function NewAnnouncementBar() {
+  const { limitCheck } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const submit = useSubmit();
@@ -391,6 +404,34 @@ export default function NewAnnouncementBar() {
       </div>
       <div className="announcement-editor-layout">
         <div className="editor-form-column">
+          {limitCheck.isLimitReached && (
+            <Banner
+              title="Upgrade Required"
+              status="warning"
+              action={{
+                content: "View Plans",
+                url: "/app/billing",
+              }}
+            >
+              <p>
+                You have reached your announcement bar limit ({limitCheck.subscription.maxAnnouncements}). 
+                <Link url="/app/billing"> Upgrade your plan</Link> to create more announcement bars.
+              </p>
+            </Banner>
+          )}
+          
+          {!limitCheck.isLimitReached && limitCheck.subscription.maxAnnouncements !== -1 && (
+            <Banner
+              title={`${limitCheck.remainingCount} announcement bar${limitCheck.remainingCount !== 1 ? 's' : ''} remaining`}
+              status="info"
+            >
+              <p>
+                You can create {limitCheck.remainingCount} more announcement bar{limitCheck.remainingCount !== 1 ? 's' : ''} on your current plan.
+                <Link url="/app/billing"> Upgrade</Link> for unlimited announcement bars.
+              </p>
+            </Banner>
+          )}
+
           <Form method="post">
             <Card>
               <BlockStack gap="500">
@@ -964,9 +1005,16 @@ export default function NewAnnouncementBar() {
                 </FormLayout>
 
                 {actionData && 'error' in actionData && actionData.error && (
-                  <Text as="p" variant="bodyMd" tone="critical">
-                    {actionData.error}
-                  </Text>
+                  <Banner
+                    title="Error"
+                    status="critical"
+                    action={actionData.needsUpgrade ? {
+                      content: "View Plans",
+                      url: "/app/billing",
+                    } : undefined}
+                  >
+                    <p>{actionData.error}</p>
+                  </Banner>
                 )}
 
                 {actionData && 'success' in actionData && actionData.success && (
@@ -979,7 +1027,11 @@ export default function NewAnnouncementBar() {
                   <Button 
                     variant="primary" 
                     loading={isLoading}
+                    disabled={limitCheck.isLimitReached}
                     onClick={() => {
+                      if (limitCheck.isLimitReached) {
+                        return;
+                      }
                       if (validateForm()) {
                         const formData = new FormData();
                         formData.append("name", name);
