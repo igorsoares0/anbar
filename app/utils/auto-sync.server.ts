@@ -1,20 +1,18 @@
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { BILLING_PLANS } from "./billing.server";
+import { BILLING_PLANS, processExpiredCancellations } from "./billing.server";
 
 export async function autoSyncSubscription(request: Request) {
   try {
     const { session } = await authenticate.admin(request);
     
+    // Process any expired cancellations with access token
+    await processExpiredCancellations(session.accessToken);
+    
     // Get current subscription from database
     const dbSubscription = await db.subscription.findUnique({
       where: { shop: session.shop },
     });
-
-    // If already on paid plan, no need to check
-    if (dbSubscription && dbSubscription.planId !== "free") {
-      return dbSubscription;
-    }
 
     // Check Shopify for active charges
     const response = await fetch(`https://${session.shop}/admin/api/2023-10/recurring_application_charges.json`, {
@@ -66,8 +64,22 @@ export async function autoSyncSubscription(request: Request) {
     console.log(`Auto-sync: Charge price=${activeCharge.price}, detected planId=${planId}`);
     
     const plan = BILLING_PLANS[planId.toUpperCase() as keyof typeof BILLING_PLANS];
-    const periodEnd = new Date(activeCharge.billing_on);
     const periodStart = new Date(activeCharge.activated_on);
+    const periodEnd = new Date(periodStart);
+    if (planId === "annual") {
+      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    } else {
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+    }
+
+    // Check if this is a different charge than what we have stored
+    const needsUpdate = !dbSubscription || 
+                       dbSubscription.chargeId !== String(activeCharge.id) || 
+                       dbSubscription.planId !== planId;
+
+    if (needsUpdate) {
+      console.log(`Updating subscription: chargeId ${dbSubscription?.chargeId} -> ${activeCharge.id}, planId ${dbSubscription?.planId} -> ${planId}`);
+    }
 
     const updatedSubscription = await db.subscription.upsert({
       where: { shop: session.shop },
@@ -92,7 +104,7 @@ export async function autoSyncSubscription(request: Request) {
       },
     });
 
-    console.log(`Auto-synced subscription for ${session.shop}: ${planId}`);
+    console.log(`Auto-synced subscription for ${session.shop}: ${planId} (charge: ${activeCharge.id})`);
     return updatedSubscription;
 
   } catch (error) {

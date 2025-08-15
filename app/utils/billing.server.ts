@@ -56,6 +56,35 @@ export async function createRecurringCharge(
 ) {
   const { admin, session } = await authenticate.admin(request);
   
+  // Check if user has an existing active subscription
+  const existingSubscription = await db.subscription.findUnique({
+    where: { shop: session.shop },
+  });
+
+  // If switching plans, cancel the existing charge first
+  if (existingSubscription && existingSubscription.chargeId && existingSubscription.planId !== "free") {
+    console.log(`Cancelling existing ${existingSubscription.planId} subscription before creating ${planId}`);
+    
+    try {
+      // Cancel the existing charge
+      const cancelResponse = await fetch(`https://${session.shop}/admin/api/2023-10/recurring_application_charges/${existingSubscription.chargeId}.json`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Access-Token": session.accessToken,
+        },
+      });
+
+      if (cancelResponse.ok) {
+        console.log(`Successfully cancelled existing charge ${existingSubscription.chargeId}`);
+      } else {
+        console.warn(`Failed to cancel existing charge: ${cancelResponse.status}`);
+      }
+    } catch (error) {
+      console.warn(`Error cancelling existing charge:`, error);
+    }
+  }
+  
   const plan = BILLING_PLANS[planId.toUpperCase() as keyof typeof BILLING_PLANS];
   if (!plan || plan.billingType !== "recurring") {
     throw new Error("Invalid plan for recurring charge");
@@ -139,8 +168,10 @@ export async function activateRecurringCharge(
   if (planId === "annual") {
     periodEnd.setFullYear(periodEnd.getFullYear() + 1);
   } else {
-    periodEnd.setDate(periodEnd.getDate() + 30);
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
   }
+
+  const activatedCharge = result.recurring_application_charge;
 
   await db.subscription.upsert({
     where: { shop: session.shop },
@@ -148,7 +179,7 @@ export async function activateRecurringCharge(
       planId,
       status: "active",
       billingType: plan.billingType,
-      chargeId: String(charge.id),
+      chargeId: String(activatedCharge.id),
       currentPeriodStart: now,
       currentPeriodEnd: periodEnd,
       maxAnnouncements: plan.maxAnnouncements,
@@ -158,7 +189,7 @@ export async function activateRecurringCharge(
       planId,
       status: "active",
       billingType: plan.billingType,
-      chargeId: String(charge.id),
+      chargeId: String(activatedCharge.id),
       currentPeriodStart: now,
       currentPeriodEnd: periodEnd,
       maxAnnouncements: plan.maxAnnouncements,
@@ -179,51 +210,140 @@ export async function cancelSubscription(request: Request) {
     throw new Error("No active subscription found");
   }
 
-  // Cancel charge using REST API
-  const response = await fetch(`https://${session.shop}/admin/api/2023-10/recurring_application_charges/${subscription.chargeId}.json`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Access-Token": session.accessToken,
-    },
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Failed to cancel charge: ${response.status} ${errorText}`);
+  if (subscription.status === "cancelled") {
+    throw new Error("Subscription is already cancelled");
   }
 
+  // DO NOT cancel in Shopify yet - only mark as cancelled in our database
+  // The actual Shopify cancellation will happen when the period ends
+  
   await db.subscription.update({
     where: { shop: session.shop },
     data: {
-      planId: BILLING_PLANS.FREE.id,
-      status: "active",
-      billingType: BILLING_PLANS.FREE.billingType,
-      chargeId: null,
-      currentPeriodStart: null,
-      currentPeriodEnd: null,
-      maxAnnouncements: BILLING_PLANS.FREE.maxAnnouncements,
+      status: "cancelled", // Mark as cancelled but keep current plan active until period end
+      // Keep all other fields the same - planId, maxAnnouncements, etc.
     },
   });
 
+  console.log(`Subscription marked for cancellation at period end for shop: ${session.shop}. Will cancel in Shopify on: ${subscription.currentPeriodEnd}`);
   return subscription;
 }
 
+export async function reactivateSubscription(request: Request) {
+  const { admin, session } = await authenticate.admin(request);
+
+  const subscription = await db.subscription.findUnique({
+    where: { shop: session.shop },
+  });
+
+  if (!subscription || subscription.status !== "cancelled") {
+    throw new Error("No cancelled subscription found");
+  }
+
+  // Check if still in active period
+  const now = new Date();
+  const isStillActive = subscription.currentPeriodEnd && now <= subscription.currentPeriodEnd;
+  
+  if (!isStillActive) {
+    throw new Error("Cannot reactivate - subscription period has already ended");
+  }
+
+  // Reactivate by changing status back to active
+  await db.subscription.update({
+    where: { shop: session.shop },
+    data: {
+      status: "active", // Reactivate subscription
+    },
+  });
+
+  console.log(`Subscription reactivated for shop: ${session.shop}`);
+  return subscription;
+}
+
+export async function processExpiredCancellations(accessToken?: string) {
+  const now = new Date();
+  
+  // Find all cancelled subscriptions that have passed their period end
+  const expiredCancellations = await db.subscription.findMany({
+    where: {
+      status: "cancelled",
+      currentPeriodEnd: {
+        lt: now,
+      },
+      chargeId: {
+        not: null, // Only process subscriptions that still have a charge ID
+      },
+    },
+  });
+
+  for (const subscription of expiredCancellations) {
+    try {
+      // Now cancel in Shopify since the period has ended
+      if (subscription.chargeId && accessToken) {
+        const response = await fetch(`https://${subscription.shop}/admin/api/2023-10/recurring_application_charges/${subscription.chargeId}.json`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Shopify-Access-Token": accessToken,
+          },
+        });
+
+        if (!response.ok) {
+          console.warn(`Failed to cancel charge ${subscription.chargeId} in Shopify: ${response.status}`);
+        } else {
+          console.log(`Successfully cancelled charge ${subscription.chargeId} in Shopify for ${subscription.shop}`);
+        }
+      }
+    } catch (error) {
+      console.error(`Error cancelling charge in Shopify for ${subscription.shop}:`, error);
+    }
+
+    // Update to free plan regardless of Shopify API success/failure
+    await db.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        planId: BILLING_PLANS.FREE.id,
+        status: "active",
+        billingType: BILLING_PLANS.FREE.billingType,
+        chargeId: null,
+        currentPeriodStart: null,
+        currentPeriodEnd: null,
+        maxAnnouncements: BILLING_PLANS.FREE.maxAnnouncements,
+      },
+    });
+    
+    console.log(`Processed expired cancellation for shop: ${subscription.shop}`);
+  }
+
+  return expiredCancellations.length;
+}
+
 export async function checkAnnouncementLimit(shop: string) {
+  // Process any expired cancellations first (without access token - will only update database)
+  await processExpiredCancellations();
+  
   const subscription = await getOrCreateSubscription(shop);
   const announcementCount = await db.announcementBar.count({
     where: { shop },
   });
 
-  const isLimitReached = subscription.maxAnnouncements !== -1 && 
-                        announcementCount >= subscription.maxAnnouncements;
+  // Check if subscription is cancelled but still in active period
+  const now = new Date();
+  const isInActivePeriod = subscription.currentPeriodEnd && now <= subscription.currentPeriodEnd;
+  const effectiveMaxAnnouncements = (subscription.status === "cancelled" && !isInActivePeriod) 
+    ? BILLING_PLANS.FREE.maxAnnouncements 
+    : subscription.maxAnnouncements;
+
+  const isLimitReached = effectiveMaxAnnouncements !== -1 && 
+                        announcementCount >= effectiveMaxAnnouncements;
 
   return {
     subscription,
     announcementCount,
     isLimitReached,
-    remainingCount: subscription.maxAnnouncements === -1 ? 
+    remainingCount: effectiveMaxAnnouncements === -1 ? 
                    Infinity : 
-                   Math.max(0, subscription.maxAnnouncements - announcementCount),
+                   Math.max(0, effectiveMaxAnnouncements - announcementCount),
+    isCancelledButActive: subscription.status === "cancelled" && isInActivePeriod,
   };
 }

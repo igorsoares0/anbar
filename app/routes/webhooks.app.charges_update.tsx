@@ -36,19 +36,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       
       const plan = BILLING_PLANS[planId.toUpperCase() as keyof typeof BILLING_PLANS];
       
-      // Use billing_on date if available, otherwise calculate
-      let periodEnd = new Date();
-      if (charge.billing_on) {
-        periodEnd = new Date(charge.billing_on);
-      } else {
-        if (planId === "annual") {
-          periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-        } else {
-          periodEnd.setDate(periodEnd.getDate() + 30);
-        }
-      }
-
+      // Calculate period end based on plan type
       const periodStart = charge.activated_on ? new Date(charge.activated_on) : new Date();
+      const periodEnd = new Date(periodStart);
+      if (planId === "annual") {
+        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+      } else {
+        periodEnd.setMonth(periodEnd.getMonth() + 1);
+      }
 
       await db.subscription.upsert({
         where: { shop },

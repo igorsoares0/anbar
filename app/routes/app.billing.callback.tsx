@@ -52,8 +52,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       return redirect("/app/billing?error=invalid_plan");
     }
 
-    const now = new Date();
-    const periodEnd = new Date(charge.billing_on);
+    // Calculate period end based on plan type
+    const periodStart = new Date(charge.activated_on);
+    const periodEnd = new Date(periodStart);
+    if (planId === "annual") {
+      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    } else {
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+    }
 
     await db.subscription.upsert({
       where: { shop: session.shop },
@@ -62,7 +68,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         status: "active",
         billingType: plan.billingType,
         chargeId: String(charge.id),
-        currentPeriodStart: new Date(charge.activated_on),
+        currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
         maxAnnouncements: plan.maxAnnouncements,
       },
@@ -72,7 +78,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         status: "active",
         billingType: plan.billingType,
         chargeId: String(charge.id),
-        currentPeriodStart: new Date(charge.activated_on),
+        currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
         maxAnnouncements: plan.maxAnnouncements,
       },

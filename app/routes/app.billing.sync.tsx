@@ -41,9 +41,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     
     const plan = BILLING_PLANS[planId.toUpperCase() as keyof typeof BILLING_PLANS];
     
-    // Update subscription in database
-    const now = new Date();
-    const periodEnd = new Date(activeCharge.billing_on);
+    // Calculate period end based on plan type
+    const periodStart = new Date(activeCharge.activated_on);
+    const periodEnd = new Date(periodStart);
+    if (planId === "annual") {
+      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    } else {
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+    }
 
     const subscription = await db.subscription.upsert({
       where: { shop: session.shop },
@@ -52,7 +57,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         status: "active",
         billingType: plan.billingType,
         chargeId: String(activeCharge.id),
-        currentPeriodStart: new Date(activeCharge.activated_on),
+        currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
         maxAnnouncements: plan.maxAnnouncements,
       },
@@ -62,7 +67,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         status: "active",
         billingType: plan.billingType,
         chargeId: String(activeCharge.id),
-        currentPeriodStart: new Date(activeCharge.activated_on),
+        currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
         maxAnnouncements: plan.maxAnnouncements,
       },

@@ -21,6 +21,7 @@ import {
   createRecurringCharge,
   activateRecurringCharge,
   cancelSubscription,
+  reactivateSubscription,
   BILLING_PLANS,
 } from "../utils/billing.server";
 import { autoSyncSubscription } from "../utils/auto-sync.server";
@@ -133,6 +134,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
   }
 
+  if (action === "reactivate") {
+    try {
+      await reactivateSubscription(request);
+      return json({ success: true });
+    } catch (error) {
+      return json(
+        { error: "Failed to reactivate subscription" },
+        { status: 500 }
+      );
+    }
+  }
+
   return json({ error: "Invalid action" }, { status: 400 });
 };
 
@@ -168,6 +181,12 @@ export default function BillingPage() {
     submit(formData, { method: "post" });
   };
 
+  const handleReactivate = () => {
+    const formData = new FormData();
+    formData.set("action", "reactivate");
+    submit(formData, { method: "post" });
+  };
+
   return (
     <Page
       title="Billing & Plans"
@@ -188,11 +207,23 @@ export default function BillingPage() {
           )}
           
           {subscription.planId !== "free" && (
-            <Banner title="Current Subscription" status="success">
+            <Banner 
+              title={subscription.status === "cancelled" ? "Subscription Cancelling" : "Current Subscription"} 
+              status={subscription.status === "cancelled" ? "attention" : "success"}
+            >
               <Text as="p">
-                You are currently on the {currentPlan?.name} plan.
-                {subscription.currentPeriodEnd && (
-                  <> Next billing date: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}</>
+                {subscription.status === "cancelled" ? (
+                  <>
+                    Your {currentPlan?.name} plan will expire on {subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'the next billing date'}. 
+                    You will automatically be moved to the Free plan after this date.
+                  </>
+                ) : (
+                  <>
+                    You are currently on the {currentPlan?.name} plan.
+                    {subscription.currentPeriodEnd && (
+                      <> Next billing date: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}</>
+                    )}
+                  </>
                 )}
               </Text>
             </Banner>
@@ -210,7 +241,11 @@ export default function BillingPage() {
                         {plan.name}
                       </Text>
                       {subscription.planId === plan.id && (
-                        <Badge status="success">Current Plan</Badge>
+                        subscription.status === "cancelled" ? (
+                          <Badge status="attention">Expires {subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'Soon'}</Badge>
+                        ) : (
+                          <Badge status="success">Current Plan</Badge>
+                        )
                       )}
                     </div>
 
@@ -233,14 +268,29 @@ export default function BillingPage() {
 
                     {subscription.planId === plan.id ? (
                       plan.id !== "free" ? (
-                        <Button
-                          destructive
-                          onClick={handleCancel}
-                          size="large"
-                          fullWidth
-                        >
-                          Cancel Subscription
-                        </Button>
+                        subscription.status === "cancelled" ? (
+                          <BlockStack gap="200">
+                            <Button disabled size="large" fullWidth>
+                              Expires {subscription.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : 'Soon'}
+                            </Button>
+                            <Button
+                              onClick={handleReactivate}
+                              size="large"
+                              fullWidth
+                            >
+                              Reactivate Subscription
+                            </Button>
+                          </BlockStack>
+                        ) : (
+                          <Button
+                            destructive
+                            onClick={handleCancel}
+                            size="large"
+                            fullWidth
+                          >
+                            Cancel Subscription
+                          </Button>
+                        )
                       ) : (
                         <Button disabled size="large" fullWidth>
                           Current Plan
