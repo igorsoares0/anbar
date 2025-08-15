@@ -6,11 +6,15 @@ import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 import { authenticate } from "../shopify.server";
+import { autoSyncSubscription } from "../utils/auto-sync.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
+
+  // Auto-sync subscription on every app route access
+  await autoSyncSubscription(request);
 
   return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 };
