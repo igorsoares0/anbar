@@ -63,7 +63,7 @@ export async function createRecurringCharge(
 
   // If switching plans, cancel the existing charge first
   if (existingSubscription && existingSubscription.chargeId && existingSubscription.planId !== "free") {
-    console.log(`Cancelling existing ${existingSubscription.planId} subscription before creating ${planId}`);
+    // Cancelling existing subscription before creating new one
     
     try {
       // Cancel the existing charge
@@ -76,12 +76,12 @@ export async function createRecurringCharge(
       });
 
       if (cancelResponse.ok) {
-        console.log(`Successfully cancelled existing charge ${existingSubscription.chargeId}`);
+        // Successfully cancelled existing charge
       } else {
-        console.warn(`Failed to cancel existing charge: ${cancelResponse.status}`);
+        // Failed to cancel existing charge
       }
     } catch (error) {
-      console.warn(`Error cancelling existing charge:`, error);
+      // Error cancelling existing charge
     }
   }
   
@@ -116,11 +116,7 @@ export async function createRecurringCharge(
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`Billing Error - Create Charge Failed: ${response.status}`, {
-      shop: session.shop,
-      planId,
-      error: errorText
-    });
+    // Billing Error - Create Charge Failed
     throw new Error(`Failed to create charge: ${response.status} ${errorText}`);
   }
 
@@ -147,12 +143,7 @@ export async function activateRecurringCharge(
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`Billing Error - Activate Charge Failed: ${response.status}`, {
-      shop: session.shop,
-      chargeId,
-      planId,
-      error: errorText
-    });
+    // Billing Error - Activate Charge Failed
     throw new Error(`Failed to activate charge: ${response.status} ${errorText}`);
   }
 
@@ -225,7 +216,7 @@ export async function cancelSubscription(request: Request) {
     },
   });
 
-  console.log(`Subscription marked for cancellation at period end for shop: ${session.shop}. Will cancel in Shopify on: ${subscription.currentPeriodEnd}`);
+  // Subscription marked for cancellation at period end
   return subscription;
 }
 
@@ -256,7 +247,7 @@ export async function reactivateSubscription(request: Request) {
     },
   });
 
-  console.log(`Subscription reactivated for shop: ${session.shop}`);
+  // Subscription reactivated
   return subscription;
 }
 
@@ -289,13 +280,13 @@ export async function processExpiredCancellations(accessToken?: string) {
         });
 
         if (!response.ok) {
-          console.warn(`Failed to cancel charge ${subscription.chargeId} in Shopify: ${response.status}`);
+          // Failed to cancel charge in Shopify
         } else {
-          console.log(`Successfully cancelled charge ${subscription.chargeId} in Shopify for ${subscription.shop}`);
+          // Successfully cancelled charge in Shopify
         }
       }
     } catch (error) {
-      console.error(`Error cancelling charge in Shopify for ${subscription.shop}:`, error);
+      // Error cancelling charge in Shopify
     }
 
     // Update to free plan regardless of Shopify API success/failure
@@ -312,7 +303,7 @@ export async function processExpiredCancellations(accessToken?: string) {
       },
     });
     
-    console.log(`Processed expired cancellation for shop: ${subscription.shop}`);
+    // Processed expired cancellation
   }
 
   return expiredCancellations.length;

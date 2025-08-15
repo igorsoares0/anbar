@@ -1,9 +1,10 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
+# Client ID (public, safe to commit) - for production, use SHOPIFY_API_KEY env var
 client_id = "4d36bf6cef9a57c0a1365018b03816d8"
 name = "anbar"
 handle = "anbar-1"
-application_url = "https://movement-bridges-police-powell.trycloudflare.com"
+application_url = "https://rhythm-evans-cu-jam.trycloudflare.com"
 embedded = true
 
 [build]
@@ -30,7 +31,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://movement-bridges-police-powell.trycloudflare.com/auth/callback", "https://movement-bridges-police-powell.trycloudflare.com/auth/shopify/callback", "https://movement-bridges-police-powell.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://rhythm-evans-cu-jam.trycloudflare.com/auth/callback", "https://rhythm-evans-cu-jam.trycloudflare.com/auth/shopify/callback", "https://rhythm-evans-cu-jam.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

@@ -7,6 +7,11 @@ Description: JavaScript that automatically injects announcement bars into cart d
 (function() {
   'use strict';
   
+  // Debug logging only when explicitly enabled
+  const DEBUG_MODE = window.location.search.includes('anbar_debug=1');
+  const log = DEBUG_MODE ? console.log.bind(console, 'Anbar:') : () => {};
+  const logError = DEBUG_MODE ? console.error.bind(console, 'Anbar:') : () => {};
+  
   // Configuration
   const ANBAR_CONFIG = {
     selectors: [
@@ -66,36 +71,36 @@ Description: JavaScript that automatically injects announcement bars into cart d
   function anbarCartDrawerClose(barId) {
     // Prevent multiple simultaneous executions
     if (closingInProgress) {
-      console.log('Anbar: Close already in progress, skipping');
+      log( Close already in progress, skipping');
       return;
     }
     closingInProgress = true;
 
-    console.log('Anbar: anbarCartDrawerClose called with barId:', barId);
+    log( anbarCartDrawerClose called with barId:', barId);
     
     // Save closed state immediately
     sessionStorage.setItem('anbar-cart-drawer-closed-' + barId, 'true');
-    console.log('Anbar: Cart drawer bar state saved');
+    log( Cart drawer bar state saved');
     
     // Remove ALL cart drawer wrappers immediately (nuclear approach)
     const allWrappers = document.querySelectorAll('.anbar-cart-drawer-wrapper');
-    console.log('Anbar: Found', allWrappers.length, 'cart drawer wrappers to remove');
+    log( Found', allWrappers.length, 'cart drawer wrappers to remove');
     
     allWrappers.forEach((wrapper, index) => {
-      console.log('Anbar: Removing wrapper', index + 1);
+      log( Removing wrapper', index + 1);
       wrapper.remove();
     });
     
     // Reset injection flag
     isInjected = false;
-    console.log('Anbar: All cart drawer wrappers removed and injection flag reset');
+    log( All cart drawer wrappers removed and injection flag reset');
     
     // Reset the closing flag after a short delay
     setTimeout(() => {
       closingInProgress = false;
     }, 100);
     
-    console.log('Anbar: Cart drawer bar closed successfully');
+    log( Cart drawer bar closed successfully');
   }
   
   // Make function globally available
@@ -345,7 +350,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
     style.id = 'anbar-cart-drawer-css';
     style.textContent = css;
     document.head.appendChild(style);
-    console.log('Anbar: Cart drawer CSS injected');
+    log( Cart drawer CSS injected');
   }
   
   // Check and hide previously closed bars
@@ -368,7 +373,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
     
     // Don't inject if all cart drawer bars are closed
     if (areAllCartDrawerBarsClosed()) {
-      console.log('Anbar: All cart drawer bars are closed, skipping direct injection');
+      log( All cart drawer bars are closed, skipping direct injection');
       return true; // Return true to prevent fallback injection
     }
     
@@ -447,10 +452,10 @@ Description: JavaScript that automatically injects announcement bars into cart d
       }, 100);
       
       isInjected = true;
-      console.log('Anbar: SlideCartHQ direct injection successful');
+      log( SlideCartHQ direct injection successful');
       return true;
     } catch (error) {
-      console.error('Anbar: Direct SlideCartHQ injection failed:', error);
+      logError( Direct SlideCartHQ injection failed:', error);
       return false;
     }
   }
@@ -470,7 +475,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
     // First priority: SlideCartHQ with open class AND visible
     const slideCartHQOpen = document.querySelector('.slidecarthq.open');
     if (slideCartHQOpen && slideCartHQOpen.offsetWidth > 0 && slideCartHQOpen.offsetHeight > 0) {
-      console.log('Anbar: Found open SlideCartHQ drawer:', slideCartHQOpen);
+      log( Found open SlideCartHQ drawer:', slideCartHQOpen);
       return slideCartHQOpen;
     }
     
@@ -478,7 +483,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
     const allSlideCartHQ = document.querySelectorAll('.slidecarthq');
     for (const cart of allSlideCartHQ) {
       if (cart.offsetWidth > 0 && cart.offsetHeight > 0) {
-        console.log('Anbar: Found visible SlideCartHQ drawer:', cart);
+        log( Found visible SlideCartHQ drawer:', cart);
         return cart;
       }
     }
@@ -492,33 +497,33 @@ Description: JavaScript that automatically injects announcement bars into cart d
       
       const element = document.querySelector(selector);
       if (element && element.offsetWidth > 0 && element.offsetHeight > 0) {
-        console.log('Anbar: Found cart drawer with selector:', selector, element);
+        log( Found cart drawer with selector:', selector, element);
         return element;
       }
     }
     
-    console.log('Anbar: No suitable cart drawer found');
+    log( No suitable cart drawer found');
     return null;
   }
   
   // Find the best insertion point within cart drawer
   function findInsertionPoint(cartDrawer) {
-    console.log('Anbar: Finding insertion point in cart drawer:', cartDrawer);
-    console.log('Anbar: Cart drawer classes:', cartDrawer.className);
+    log( Finding insertion point in cart drawer:', cartDrawer);
+    log( Cart drawer classes:', cartDrawer.className);
     
     // Special handling for SlideCartHQ
     const isSlideCartHQ = cartDrawer.classList.contains('slidecarthq') || cartDrawer.classList.contains('slidecart');
-    console.log('Anbar: Is SlideCartHQ:', isSlideCartHQ);
+    log( Is SlideCartHQ:', isSlideCartHQ);
     
     if (isSlideCartHQ) {
       const header = cartDrawer.querySelector('.header');
       const items = cartDrawer.querySelector('.items');
       
-      console.log('Anbar: SlideCartHQ elements found - header:', header, 'items:', items);
+      log( SlideCartHQ elements found - header:', header, 'items:', items);
       
       if (header && items) {
         // Insert between header and items by targeting the parent container
-        console.log('Anbar: Will insert after header, before items');
+        log( Will insert after header, before items');
         return {
           type: 'slidecart',
           parent: cartDrawer, // The main cart drawer container
@@ -528,7 +533,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
       }
       
       if (header) {
-        console.log('Anbar: Will insert after header');
+        log( Will insert after header');
         return {
           type: 'slidecart',
           parent: cartDrawer, // Insert directly in the cart drawer
@@ -537,7 +542,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
       }
       
       if (items) {
-        console.log('Anbar: Will insert at top of items');
+        log( Will insert at top of items');
         return {
           type: 'slidecart',
           parent: items,
@@ -546,7 +551,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
       }
       
       // Fallback for SlideCartHQ - insert at top of drawer
-      console.log('Anbar: SlideCartHQ fallback - insert at top of drawer');
+      log( SlideCartHQ fallback - insert at top of drawer');
       return {
         type: 'slidecart',
         parent: cartDrawer,
@@ -558,7 +563,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
     for (const selector of ANBAR_CONFIG.insertPositions) {
       const element = cartDrawer.querySelector(selector);
       if (element) {
-        console.log('Anbar: Standard insertion point found:', selector, element);
+        log( Standard insertion point found:', selector, element);
         return {
           type: 'standard',
           parent: element,
@@ -567,7 +572,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
       }
     }
     
-    console.log('Anbar: Using fallback insertion point');
+    log( Using fallback insertion point');
     return {
       type: 'fallback',
       parent: cartDrawer,
@@ -581,7 +586,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
     
     // Don't inject if all cart drawer bars are closed
     if (areAllCartDrawerBarsClosed()) {
-      console.log('Anbar: All cart drawer bars are closed, skipping injection');
+      log( All cart drawer bars are closed, skipping injection');
       return;
     }
     
@@ -593,19 +598,19 @@ Description: JavaScript that automatically injects announcement bars into cart d
     // Fallback to general injection logic
     const cartDrawer = findCartDrawer();
     if (!cartDrawer) {
-      console.log('Anbar: No cart drawer found');
+      log( No cart drawer found');
       return;
     }
     
     const insertionConfig = findInsertionPoint(cartDrawer);
     if (!insertionConfig || !insertionConfig.parent) {
-      console.log('Anbar: No insertion point found in cart drawer');
+      log( No insertion point found in cart drawer');
       return;
     }
     
     const announcementHTML = getAnnouncementBarsHTML();
     if (!announcementHTML.trim()) {
-      console.log('Anbar: No cart announcement HTML found');
+      log( No cart announcement HTML found');
       return;
     }
     
@@ -630,27 +635,27 @@ Description: JavaScript that automatically injects announcement bars into cart d
     container.innerHTML = announcementHTML;
     
     // Debug logging
-    console.log('Anbar: Container created with HTML length:', announcementHTML.length);
-    console.log('Anbar: HTML preview:', announcementHTML.substring(0, 100) + (announcementHTML.length > 100 ? '...' : ''));
+    log( Container created with HTML length:', announcementHTML.length);
+    log( HTML preview:', announcementHTML.substring(0, 100) + (announcementHTML.length > 100 ? '...' : ''));
     
     // Handle different insertion types
     try {
       if (insertionConfig.type === 'slidecart' && insertionConfig.afterElement) {
         // Insert after header element for SlideCartHQ - ensure it's inside the cart drawer
-        console.log('Anbar: Attempting SlideCartHQ insertion after element:', insertionConfig.afterElement);
-        console.log('Anbar: Parent container:', insertionConfig.parent);
+        log( Attempting SlideCartHQ insertion after element:', insertionConfig.afterElement);
+        log( Parent container:', insertionConfig.parent);
         
         // Use insertAdjacentElement to insert immediately after the header
         insertionConfig.afterElement.insertAdjacentElement('afterend', container);
         isInjected = true;
-        console.log('Anbar: Announcement bars injected after header in SlideCartHQ');
+        log( Announcement bars injected after header in SlideCartHQ');
         
         // Verify it's actually inside the cart drawer
         const isInside = cartDrawer.contains(container);
-        console.log('Anbar: Container is inside cart drawer:', isInside);
+        log( Container is inside cart drawer:', isInside);
         
         if (!isInside) {
-          console.log('Anbar: Container not inside cart drawer, attempting correction...');
+          log( Container not inside cart drawer, attempting correction...');
           container.remove();
           
           // Try inserting as first child of cart drawer after header
@@ -662,32 +667,32 @@ Description: JavaScript that automatically injects announcement bars into cart d
           } else {
             cartDrawer.insertBefore(container, cartDrawer.firstChild);
           }
-          console.log('Anbar: Corrected insertion inside cart drawer');
+          log( Corrected insertion inside cart drawer');
         }
         
       } else if (insertionConfig.insertAtTop) {
         // Insert at the top of parent element
-        console.log('Anbar: Inserting at top of:', insertionConfig.parent);
+        log( Inserting at top of:', insertionConfig.parent);
         insertionConfig.parent.insertBefore(container, insertionConfig.parent.firstChild);
         isInjected = true;
-        console.log('Anbar: Announcement bars injected at top of container');
+        log( Announcement bars injected at top of container');
       } else {
         // Fallback: append to parent
-        console.log('Anbar: Appending to:', insertionConfig.parent);
+        log( Appending to:', insertionConfig.parent);
         insertionConfig.parent.appendChild(container);
         isInjected = true;
-        console.log('Anbar: Announcement bars appended to container');
+        log( Announcement bars appended to container');
       }
     } catch (error) {
-      console.error('Anbar: Error injecting announcement bars:', error);
+      logError( Error injecting announcement bars:', error);
       // Final fallback: try appending to cart drawer itself
       try {
-        console.log('Anbar: Attempting final fallback injection to cart drawer');
+        log( Attempting final fallback injection to cart drawer');
         cartDrawer.insertBefore(container, cartDrawer.firstChild);
         isInjected = true;
-        console.log('Anbar: Announcement bars injected via final fallback');
+        log( Announcement bars injected via final fallback');
       } catch (fallbackError) {
-        console.error('Anbar: All injection methods failed:', fallbackError);
+        logError( All injection methods failed:', fallbackError);
       }
     }
     
@@ -702,7 +707,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
         const injectedElement = document.querySelector('.anbar-cart-drawer-wrapper');
         if (injectedElement) {
           const computedStyle = getComputedStyle(injectedElement);
-          console.log('Anbar: Post-injection verification:', {
+          log( Post-injection verification:', {
             found: true,
             visible: injectedElement.offsetWidth > 0 && injectedElement.offsetHeight > 0,
             display: computedStyle.display,
@@ -714,7 +719,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
             }
           });
         } else {
-          console.log('Anbar: Post-injection verification: Element not found in DOM');
+          log( Post-injection verification: Element not found in DOM');
         }
       }, 100);
     }
@@ -759,14 +764,14 @@ Description: JavaScript that automatically injects announcement bars into cart d
       if (isVisible && !isInjected) {
         // Only inject if there are bars that should be shown (not all closed)
         if (!areAllCartDrawerBarsClosed()) {
-          console.log('Anbar: Cart drawer visible and bars available, injecting...');
+          log( Cart drawer visible and bars available, injecting...');
           setTimeout(injectAnnouncementBars, 100);
         } else {
-          console.log('Anbar: Cart drawer visible but all bars are closed, skipping injection');
+          log( Cart drawer visible but all bars are closed, skipping injection');
         }
       } else if (!isVisible && isInjected) {
         // Cart drawer was closed, reset injection flag for next time
-        console.log('Anbar: Cart drawer closed, resetting injection flag');
+        log( Cart drawer closed, resetting injection flag');
         isInjected = false;
       }
     }
@@ -874,7 +879,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
         
         const barId = e.target.getAttribute('data-bar-id');
         if (barId) {
-          console.log('Anbar: Closing cart drawer bar:', barId);
+          log( Closing cart drawer bar:', barId);
           anbarCartDrawerClose(barId);
         }
       }

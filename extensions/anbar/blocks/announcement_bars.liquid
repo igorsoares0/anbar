@@ -409,16 +409,11 @@ Description: Automatically displays active announcement bars based on their loca
         {%- when 'specific_products' -%}
           {%- if template.name == 'product' -%}
             {%- if bar.targetProducts -%}
-              {% comment %} Debug: Show what we're comparing {% endcomment %}
-              <!-- DEBUG: Current product ID: {{ product.id }} -->
-              <!-- DEBUG: Target products: {{ bar.targetProducts | join: ', ' }} -->
               {%- for product_id in bar.targetProducts -%}
                 {%- assign current_product_id = product.id | plus: 0 -%}
                 {%- assign target_product_id = product_id | plus: 0 -%}
-                <!-- DEBUG: Comparing {{ current_product_id }} with {{ target_product_id }} -->
                 {%- if current_product_id == target_product_id -%}
                   {%- assign show_bar = true -%}
-                  <!-- DEBUG: MATCH FOUND! -->
                   {%- break -%}
                 {%- endif -%}
               {%- endfor -%}
@@ -558,12 +553,12 @@ Description: Automatically displays active announcement bars based on their loca
   
   function anbarNext(barId) {
     // Implement multiple announcement navigation
-    console.log('Next announcement for bar:', barId);
+    // Next announcement functionality
   }
   
   function anbarPrevious(barId) {
     // Implement multiple announcement navigation
-    console.log('Previous announcement for bar:', barId);
+    // Previous announcement functionality
   }
   
   // Check if bars were previously closed in this session
@@ -627,11 +622,6 @@ Description: Automatically displays active announcement bars based on their loca
 <!-- Include cart drawer injector for cart page announcements -->
 {% render 'cart-drawer-injector' %}
 
-<!-- Include test utilities if debug mode is enabled -->
-{% if request.url contains 'anbar_debug=1' %}
-  {% render 'cart-drawer-test' %}
-  {% render 'cart-drawer-debug' %}
-{% endif %}
 
 {% schema %}
 {

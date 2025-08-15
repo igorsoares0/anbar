@@ -21,7 +21,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       orderBy: { createdAt: "desc" },
     });
 
-    console.log('Found announcement bars:', announcementBars.length);
+    // Found announcement bars
 
     // Always store bars in shop metafields for theme access (even if empty)
     const metafieldsResult = await admin.graphql(`
@@ -53,11 +53,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     });
 
     const result = await metafieldsResult.json();
-    console.log('Metafields result:', JSON.stringify(result, null, 2));
+    // Metafields result processed
 
     return json({ bars: announcementBars });
   } catch (error) {
-    console.error("Error fetching announcement bars:", error);
+    // Error fetching announcement bars
     return json({ bars: [] });
   }
 };
@@ -80,7 +80,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       orderBy: { createdAt: "desc" },
     });
 
-    console.log('Syncing announcement bars:', announcementBars.length);
+    // Syncing announcement bars
 
     // Store bars in shop metafields for theme access
     const metafieldsResult = await admin.graphql(`
@@ -112,11 +112,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
 
     const result = await metafieldsResult.json();
-    console.log('Sync metafields result:', JSON.stringify(result, null, 2));
+    // Sync metafields result processed
 
     return json({ success: true, bars: announcementBars, metafields: result });
   } catch (error) {
-    console.error("Error syncing announcement bars:", error);
+    // Error syncing announcement bars
     return json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
   }
 };

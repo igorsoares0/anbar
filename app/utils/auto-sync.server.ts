@@ -61,7 +61,7 @@ export async function autoSyncSubscription(request: Request) {
 
     // Active charge found - sync to database
     const planId = parseFloat(activeCharge.price) === 99 ? "annual" : "monthly";
-    console.log(`Auto-sync: Charge price=${activeCharge.price}, detected planId=${planId}`);
+    // Auto-sync: Charge price and planId detection
     
     const plan = BILLING_PLANS[planId.toUpperCase() as keyof typeof BILLING_PLANS];
     const periodStart = new Date(activeCharge.activated_on);
@@ -78,7 +78,7 @@ export async function autoSyncSubscription(request: Request) {
                        dbSubscription.planId !== planId;
 
     if (needsUpdate) {
-      console.log(`Updating subscription: chargeId ${dbSubscription?.chargeId} -> ${activeCharge.id}, planId ${dbSubscription?.planId} -> ${planId}`);
+      // Updating subscription: chargeId and planId
     }
 
     const updatedSubscription = await db.subscription.upsert({
@@ -104,11 +104,11 @@ export async function autoSyncSubscription(request: Request) {
       },
     });
 
-    console.log(`Auto-synced subscription for ${session.shop}: ${planId} (charge: ${activeCharge.id})`);
+    // Auto-synced subscription successfully
     return updatedSubscription;
 
   } catch (error) {
-    console.error("Auto-sync failed:", error);
+    // Auto-sync failed
     // Return existing or create free plan as fallback
     const { session } = await authenticate.admin(request);
     return await db.subscription.upsert({

@@ -20,7 +20,7 @@ export async function syncAnnouncementBarsToMetafields(
       orderBy: { createdAt: "desc" },
     });
 
-    console.log(`[SYNC] Syncing ${announcementBars.length} announcement bars for shop: ${session.shop}`);
+    // [SYNC] Syncing announcement bars for shop
 
     // Get the shop ID
     const shopResult = await admin.graphql(`
@@ -67,18 +67,18 @@ export async function syncAnnouncementBarsToMetafields(
     const result = await metafieldsResult.json();
     
     if (result.data.metafieldsSet.userErrors.length > 0) {
-      console.error('[SYNC] Metafields errors:', result.data.metafieldsSet.userErrors);
+      // [SYNC] Metafields errors occurred
       return { 
         success: false, 
         error: result.data.metafieldsSet.userErrors[0].message 
       };
     }
 
-    console.log(`[SYNC] Successfully synced ${announcementBars.length} announcement bars`);
+    // [SYNC] Successfully synced announcement bars
     return { success: true, synced: announcementBars.length };
 
   } catch (error) {
-    console.error("[SYNC] Error syncing announcement bars:", error);
+    // [SYNC] Error syncing announcement bars
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Unknown error" 
