@@ -75,21 +75,35 @@ export default function AnnouncementBarsIndex() {
       <Layout>
         <Layout.Section>
           {limitCheck.subscription.planId === "free" && (
-            <Banner
-              title={`Free Plan - ${limitCheck.remainingCount} of ${limitCheck.subscription.maxAnnouncements} announcement bar${limitCheck.subscription.maxAnnouncements !== 1 ? 's' : ''} remaining`}
-              status={limitCheck.isLimitReached ? "warning" : "info"}
-              action={{
-                content: "Upgrade Plan",
-                url: "/app/billing",
-              }}
-            >
-              <p>
-                {limitCheck.isLimitReached 
-                  ? "You've reached your free plan limit. Upgrade to create unlimited announcement bars."
-                  : "Upgrade to Pro for unlimited announcement bars and advanced features."
-                }
-              </p>
-            </Banner>
+            <Card>
+              <BlockStack gap="400">
+                <InlineStack align="space-between" blockAlign="start">
+                  <BlockStack gap="200">
+                    <InlineStack gap="200" blockAlign="center">
+                      <Badge tone={limitCheck.isLimitReached ? "critical" : "info"}>
+                        Free Plan
+                      </Badge>
+                      <Text as="span" variant="bodyMd" tone="subdued">
+                        {limitCheck.remainingCount} of {limitCheck.subscription.maxAnnouncements} announcement bars remaining
+                      </Text>
+                    </InlineStack>
+                    <Text as="p" variant="bodyMd">
+                      {limitCheck.isLimitReached 
+                        ? "You've reached your free plan limit. Upgrade to create unlimited announcement bars and unlock advanced features."
+                        : "Upgrade to Pro for unlimited announcement bars, advanced targeting, and premium design options."
+                      }
+                    </Text>
+                  </BlockStack>
+                  <Button
+                    variant="primary"
+                    url="/app/billing"
+                    size="large"
+                  >
+                    Upgrade Plan
+                  </Button>
+                </InlineStack>
+              </BlockStack>
+            </Card>
           )}
           
           {announcementBars.length === 0 ? (

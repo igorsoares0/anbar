@@ -4,7 +4,7 @@
 client_id = "4d36bf6cef9a57c0a1365018b03816d8"
 name = "anbar"
 handle = "anbar-1"
-application_url = "https://rhythm-evans-cu-jam.trycloudflare.com"
+application_url = "https://b-transcripts-forth-mug.trycloudflare.com"
 embedded = true
 
 [build]
@@ -31,7 +31,7 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://rhythm-evans-cu-jam.trycloudflare.com/auth/callback", "https://rhythm-evans-cu-jam.trycloudflare.com/auth/shopify/callback", "https://rhythm-evans-cu-jam.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://b-transcripts-forth-mug.trycloudflare.com/auth/callback", "https://b-transcripts-forth-mug.trycloudflare.com/auth/shopify/callback", "https://b-transcripts-forth-mug.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
