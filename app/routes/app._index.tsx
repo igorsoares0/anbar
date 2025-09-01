@@ -8,7 +8,7 @@ import {
   BlockStack,
   InlineStack,
 } from "@shopify/polaris";
-import { PlusIcon, ViewIcon, CreditCardIcon } from "@shopify/polaris-icons";
+import { PlusIcon, ViewIcon } from "@shopify/polaris-icons";
 import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -53,12 +53,6 @@ export default function Index() {
                 to="/app/announcements"
               >
                 Manage All Bars
-              </Button>
-              <Button 
-                size="large"
-                icon={CreditCardIcon}
-              >
-                Billing & Plans
               </Button>
             </InlineStack>
           </BlockStack>
