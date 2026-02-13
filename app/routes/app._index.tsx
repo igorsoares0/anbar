@@ -30,7 +30,11 @@ export default function Index() {
   const plan = PLANS[planKey] ?? PLANS.free;
   const usagePercent = plan.viewLimit === Infinity ? 0 : Math.min((viewCount / plan.viewLimit) * 100, 100);
 
-  function formatViews(n: number): string {
+  function formatNumber(n: number): string {
+    return n.toLocaleString("en-US");
+  }
+
+  function formatLimit(n: number): string {
     if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
     return n.toString();
   }
@@ -63,7 +67,7 @@ export default function Index() {
               <InlineStack align="space-between">
                 <Text as="span" variant="bodyMd">Monthly Views</Text>
                 <Text as="span" variant="bodyMd">
-                  {formatViews(viewCount)} / {plan.viewLimit === Infinity ? "Unlimited" : formatViews(plan.viewLimit)}
+                  {formatNumber(viewCount)} / {plan.viewLimit === Infinity ? "Unlimited" : formatLimit(plan.viewLimit)}
                 </Text>
               </InlineStack>
               {plan.viewLimit !== Infinity && (
