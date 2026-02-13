@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { planKeyFromSubscriptionName } from "../utils/billing.server";
+import { planKeyFromSubscriptionName, syncBarsToMetafields } from "../utils/billing.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { shop, payload } = await authenticate.webhook(request);
@@ -32,6 +32,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       },
     });
     console.log(`[WEBHOOK] Activated plan ${planKey} for ${shop}`);
+
+    // Re-sync bars to metafields (they may have been cleared when limit was exceeded on free plan)
+    syncBarsToMetafields(shop).catch((err) =>
+      console.error(`[WEBHOOK] Failed to restore bars for ${shop}:`, err),
+    );
   } else if (
     status === "CANCELLED" ||
     status === "DECLINED" ||

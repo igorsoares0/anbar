@@ -21,7 +21,9 @@ import {
   getMonthlyUsage,
   getActiveSubscription,
   planKeyFromSubscriptionName,
+  isViewLimitExceeded,
 } from "../utils/billing.server";
+import { syncAnnouncementBarsToMetafields } from "../utils/syncAnnouncementBars.server";
 import { PLANS, type PlanKey } from "../utils/plans";
 import prisma from "../db.server";
 
@@ -52,11 +54,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           subscriptionStatus: activeSub.status,
         },
       });
-      return json({
-        shopRecord: { ...shopRecord, plan: planKey, subscriptionId: activeSub.id, subscriptionStatus: activeSub.status },
-        viewCount,
-      });
     }
+
+    // Restore bars to metafields if view limit is no longer exceeded on this plan
+    const limitExceeded = await isViewLimitExceeded(shop);
+    if (!limitExceeded) {
+      await syncAnnouncementBarsToMetafields({ shop }, admin);
+    }
+
+    return json({
+      shopRecord: { ...shopRecord, plan: planKey, subscriptionId: activeSub.id, subscriptionStatus: activeSub.status },
+      viewCount,
+    });
   } else if (shopRecord.plan !== "free") {
     await prisma.shop.update({
       where: { shop },
@@ -140,7 +149,11 @@ export default function BillingPage() {
     submit(formData, { method: "post" });
   }
 
-  function formatViews(n: number): string {
+  function formatNumber(n: number): string {
+    return n.toLocaleString("en-US");
+  }
+
+  function formatLimit(n: number): string {
     if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
     return n.toString();
   }
@@ -184,7 +197,7 @@ export default function BillingPage() {
               <InlineStack align="space-between">
                 <Text as="span" variant="bodyMd">Monthly Views</Text>
                 <Text as="span" variant="bodyMd">
-                  {formatViews(viewCount)} / {currentPlan.viewLimit === Infinity ? "Unlimited" : formatViews(currentPlan.viewLimit)}
+                  {formatNumber(viewCount)} / {currentPlan.viewLimit === Infinity ? "Unlimited" : formatLimit(currentPlan.viewLimit)}
                 </Text>
               </InlineStack>
               {currentPlan.viewLimit !== Infinity && (
@@ -244,7 +257,7 @@ export default function BillingPage() {
                     <Text as="p" variant="bodyMd">
                       {plan.viewLimit === Infinity
                         ? "Unlimited views/month"
-                        : `${formatViews(plan.viewLimit)} views/month`}
+                        : `${formatLimit(plan.viewLimit)} views/month`}
                     </Text>
                     {plan.price > 0 && (
                       <Text as="p" variant="bodySm" tone="subdued">

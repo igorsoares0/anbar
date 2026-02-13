@@ -236,6 +236,47 @@ export async function syncEmptyBarsToMetafields(shopDomain: string) {
   }
 }
 
+export async function syncBarsToMetafields(shopDomain: string) {
+  try {
+    const { admin } = await unauthenticated.admin(shopDomain);
+
+    const bars = await prisma.announcementBar.findMany({
+      where: { shop: shopDomain, isActive: true, isPublished: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const shopResult = await admin.graphql(`query { shop { id } }`);
+    const shopData = await shopResult.json();
+    const shopId = shopData.data.shop.id;
+
+    await admin.graphql(
+      `mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+        metafieldsSet(metafields: $metafields) {
+          metafields { id }
+          userErrors { field message }
+        }
+      }`,
+      {
+        variables: {
+          metafields: [
+            {
+              ownerId: shopId,
+              namespace: "anbar",
+              key: "bars",
+              value: JSON.stringify(bars),
+              type: "json",
+            },
+          ],
+        },
+      },
+    );
+
+    console.log(`[BILLING] Restored ${bars.length} bars to metafields for ${shopDomain}`);
+  } catch (error) {
+    console.error(`[BILLING] Failed to restore bars for ${shopDomain}:`, error);
+  }
+}
+
 export function planKeyFromSubscriptionName(name: string): PlanKey {
   const lower = name.toLowerCase();
   if (lower.includes("enterprise")) return "enterprise";
