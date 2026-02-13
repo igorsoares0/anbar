@@ -13,13 +13,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await db.session.deleteMany({ where: { shop } });
   }
 
-  // Clean up billing records
+  // Clean up all shop data (GDPR compliance)
   try {
+    await db.announcementBar.deleteMany({ where: { shop } });
     await db.monthlyUsage.deleteMany({ where: { shop } });
     await db.shop.deleteMany({ where: { shop } });
-    console.log(`[UNINSTALL] Cleaned up billing records for ${shop}`);
+    console.log(`[UNINSTALL] Cleaned up all data for ${shop}`);
   } catch (error) {
-    console.error(`[UNINSTALL] Error cleaning up billing records for ${shop}:`, error);
+    console.error(`[UNINSTALL] Error cleaning up data for ${shop}:`, error);
   }
 
   return new Response();

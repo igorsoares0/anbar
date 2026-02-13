@@ -17,6 +17,20 @@ const GIF_HEADERS = {
 // Track shops whose bars have been restored this process, to avoid syncing on every view
 const restoredShops = new Set<string>();
 
+// Rate limiting: max 1 tracked view per IP per shop per 5 seconds
+const RATE_LIMIT_WINDOW_MS = 5_000;
+const recentViews = new Map<string, number>();
+
+// Clean up stale entries every 60 seconds to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, timestamp] of recentViews) {
+    if (now - timestamp > RATE_LIMIT_WINDOW_MS) {
+      recentViews.delete(key);
+    }
+  }
+}, 60_000);
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.public.appProxy(request);
 
@@ -25,6 +39,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const shop = session.shop;
+
+  // Rate limit by IP + shop to prevent view count exhaustion attacks
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rateLimitKey = `${shop}:${ip}`;
+  const now = Date.now();
+  const lastView = recentViews.get(rateLimitKey);
+
+  if (lastView && now - lastView < RATE_LIMIT_WINDOW_MS) {
+    // Already counted a view from this IP recently — return without incrementing
+    return new Response(TRANSPARENT_GIF, { headers: GIF_HEADERS });
+  }
+
+  recentViews.set(rateLimitKey, now);
+
   const { viewCount, limitExceeded } = await incrementViewCount(shop);
 
   if (limitExceeded) {

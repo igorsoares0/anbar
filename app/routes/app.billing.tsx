@@ -98,23 +98,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     // It throws a redirect Response internally — do NOT wrap in try/catch.
     await billing.request({
       plan: billingPlanName,
-      isTest: true,
+      isTest: process.env.NODE_ENV !== "production",
     });
   }
 
   if (intent === "cancel") {
     const shopRecord = await prisma.shop.findUnique({ where: { shop } });
     if (shopRecord?.subscriptionId) {
+      // billing.cancel() cancels the subscription on Shopify's side.
+      // The APP_SUBSCRIPTIONS_UPDATE webhook will handle updating the local DB.
       await billing.cancel({
         subscriptionId: shopRecord.subscriptionId,
-        isTest: true,
+        isTest: process.env.NODE_ENV !== "production",
         prorate: true,
       });
     }
-    await prisma.shop.update({
-      where: { shop },
-      data: { plan: "free", subscriptionId: null, subscriptionStatus: null },
-    });
     return json({ success: true });
   }
 
