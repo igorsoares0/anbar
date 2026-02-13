@@ -81,3 +81,28 @@ model AnnouncementBar {
   @@index([shop])
   @@index([shop, isActive])
 }
+
+model Shop {
+  id                 String         @id @default(cuid())
+  shop               String         @unique
+  plan               String         @default("free")
+  subscriptionId     String?
+  subscriptionStatus String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  monthlyUsages      MonthlyUsage[]
+}
+
+model MonthlyUsage {
+  id        String   @id @default(cuid())
+  shop      String
+  month     String
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shopRecord Shop @relation(fields: [shop], references: [shop])
+
+  @@unique([shop, month])
+  @@index([shop])
+}

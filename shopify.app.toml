@@ -7,7 +7,6 @@ application_url = "https://cheapest-controls-rip-awful.trycloudflare.com"
 embedded = true
 
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true
 
 [webhooks]
@@ -20,6 +19,10 @@ api_version = "2025-07"
   [[webhooks.subscriptions]]
   topics = [ "app/scopes_update" ]
   uri = "/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app_subscriptions/update" ]
+  uri = "/webhooks/app/subscriptions_update"
 
   # Mandatory GDPR compliance webhooks
   [[webhooks.subscriptions]]
@@ -40,6 +43,11 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = ["https://cheapest-controls-rip-awful.trycloudflare.com/auth/callback", "https://cheapest-controls-rip-awful.trycloudflare.com/auth/shopify/callback", "https://cheapest-controls-rip-awful.trycloudflare.com/api/auth/callback"]
+
+[app_proxy]
+url = "https://cheapest-controls-rip-awful.trycloudflare.com/api"
+subpath = "anbar"
+prefix = "apps"
 
 [pos]
 embedded = false

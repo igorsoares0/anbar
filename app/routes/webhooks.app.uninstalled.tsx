@@ -13,5 +13,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await db.session.deleteMany({ where: { shop } });
   }
 
+  // Clean up billing records
+  try {
+    await db.monthlyUsage.deleteMany({ where: { shop } });
+    await db.shop.deleteMany({ where: { shop } });
+    console.log(`[UNINSTALL] Cleaned up billing records for ${shop}`);
+  } catch (error) {
+    console.error(`[UNINSTALL] Error cleaning up billing records for ${shop}:`, error);
+  }
+
   return new Response();
 };

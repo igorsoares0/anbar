@@ -1,5 +1,9 @@
-import type { AdminApiContext } from "@shopify/shopify-app-remix/server";
 import prisma from "../db.server";
+import { isViewLimitExceeded } from "./billing.server";
+
+type AdminGraphQL = {
+  graphql: (query: string, options?: { variables?: Record<string, unknown> }) => Promise<Response>;
+};
 
 export interface SyncSession {
   shop: string;
@@ -7,11 +11,18 @@ export interface SyncSession {
 
 export async function syncAnnouncementBarsToMetafields(
   session: SyncSession,
-  admin: AdminApiContext["admin"]
+  admin: AdminGraphQL
 ): Promise<{ success: boolean; error?: string; synced?: number }> {
   try {
+    // Check if view limit is exceeded — if so, sync empty array
+    const limitExceeded = await isViewLimitExceeded(session.shop);
+
+    if (limitExceeded) {
+      console.log(`[SYNC] View limit exceeded for ${session.shop}, syncing empty bars`);
+    }
+
     // Get all active and published announcement bars
-    const announcementBars = await prisma.announcementBar.findMany({
+    const announcementBars = limitExceeded ? [] : await prisma.announcementBar.findMany({
       where: { 
         shop: session.shop,
         isActive: true,

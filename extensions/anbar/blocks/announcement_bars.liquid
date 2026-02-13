@@ -382,6 +382,7 @@ Description: Automatically displays active announcement bars based on their loca
 </style>
 
 {%- assign announcement_bars = shop.metafields.anbar.bars.value -%}
+{%- assign anbar_view_tracked = false -%}
 {%- if announcement_bars -%}
   {%- for bar in announcement_bars -%}
     {%- if bar.isActive and bar.isPublished -%}
@@ -450,6 +451,7 @@ Description: Automatically displays active announcement bars based on their loca
       {%- endcase -%}
       
       {%- if show_bar -%}
+        {%- assign anbar_view_tracked = true -%}
         {%- assign position_class = '' -%}
         {%- if bar.displayLocation == 'cart' or bar.displayLocation == 'custom' -%}
           {%- assign position_class = bar.displayLocation -%}
@@ -545,6 +547,10 @@ Description: Automatically displays active announcement bars based on their loca
       {%- endif -%}
     {%- endif -%}
   {%- endfor -%}
+{%- endif -%}
+
+{%- if anbar_view_tracked -%}
+  <img src="/apps/anbar/track-view" alt="" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;" loading="eager" aria-hidden="true" />
 {%- endif -%}
 
 <script>
