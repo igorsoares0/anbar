@@ -1,5 +1,5 @@
 import prisma from "../db.server";
-import { unauthenticated } from "../shopify.server";
+import { unauthenticated, BILLING_PLANS } from "../shopify.server";
 import { PLANS, type PlanKey } from "./plans";
 
 export { PLANS, type PlanKey };
@@ -180,9 +180,8 @@ export async function syncBarsToMetafields(shopDomain: string) {
 }
 
 export function planKeyFromSubscriptionName(name: string): PlanKey {
-  const lower = name.toLowerCase();
-  if (lower.includes("enterprise")) return "enterprise";
-  if (lower.includes("professional")) return "professional";
-  if (lower.includes("starter")) return "starter";
+  if (name === BILLING_PLANS.ENTERPRISE) return "enterprise";
+  if (name === BILLING_PLANS.PROFESSIONAL) return "professional";
+  if (name === BILLING_PLANS.STARTER) return "starter";
   return "free";
 }

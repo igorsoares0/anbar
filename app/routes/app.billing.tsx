@@ -92,6 +92,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return json({ error: "Invalid plan" }, { status: 400 });
     }
 
+    // When changing between paid plans, cancel the existing subscription first
+    // to prevent the merchant from being charged for two plans simultaneously.
+    if (intent === "change") {
+      const shopRecord = await prisma.shop.findUnique({ where: { shop } });
+      if (shopRecord?.subscriptionId) {
+        await billing.cancel({
+          subscriptionId: shopRecord.subscriptionId,
+          isTest: process.env.NODE_ENV !== "production",
+          prorate: true,
+        });
+      }
+    }
+
     const billingPlanName = PLAN_KEY_TO_BILLING_NAME[planKey as keyof typeof PLAN_KEY_TO_BILLING_NAME];
 
     // billing.request() creates the subscription and redirects automatically.
@@ -142,6 +155,9 @@ export default function BillingPage() {
   }
 
   function handleCancel() {
+    if (!confirm("Are you sure you want to cancel your subscription? You will be downgraded to the Free plan.")) {
+      return;
+    }
     const formData = new FormData();
     formData.set("intent", "cancel");
     submit(formData, { method: "post" });
