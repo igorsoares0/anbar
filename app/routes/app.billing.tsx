@@ -62,9 +62,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       await syncAnnouncementBarsToMetafields({ shop }, admin);
     }
 
+    // Calculate trial days remaining based on createdAt + trialDays
+    let trialDaysRemaining: number | null = null;
+    if (activeSub.trialDays > 0 && activeSub.createdAt) {
+      const createdAt = new Date(activeSub.createdAt);
+      const trialEnd = new Date(createdAt.getTime() + activeSub.trialDays * 24 * 60 * 60 * 1000);
+      const now = new Date();
+      const msRemaining = trialEnd.getTime() - now.getTime();
+      trialDaysRemaining = msRemaining > 0 ? Math.ceil(msRemaining / (1000 * 60 * 60 * 24)) : null;
+    }
+
     return json({
       shopRecord: { ...shopRecord, plan: planKey, subscriptionId: activeSub.id, subscriptionStatus: activeSub.status },
       viewCount,
+      trialDaysRemaining,
+      isTestCharge: activeSub.test,
     });
   } else if (shopRecord.plan !== "free") {
     await prisma.shop.update({
@@ -74,10 +86,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return json({
       shopRecord: { ...shopRecord, plan: "free", subscriptionId: null, subscriptionStatus: null },
       viewCount,
+      trialDaysRemaining: null,
+      isTestCharge: false,
     });
   }
 
-  return json({ shopRecord, viewCount });
+  return json({ shopRecord, viewCount, trialDaysRemaining: null, isTestCharge: false });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -133,7 +147,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function BillingPage() {
-  const { shopRecord, viewCount } = useLoaderData<typeof loader>();
+  const { shopRecord, viewCount, trialDaysRemaining, isTestCharge } = useLoaderData<typeof loader>();
   const submit = useSubmit();
   const navigation = useNavigation();
   const isSubmitting = navigation.state !== "idle";
@@ -195,8 +209,13 @@ export default function BillingPage() {
                 <Text as="h2" variant="headingMd">Current Plan</Text>
                 <InlineStack gap="200" blockAlign="center">
                   <Text as="span" variant="headingLg">{currentPlan.name}</Text>
-                  {currentPlanKey !== "free" && (
+                  {currentPlanKey !== "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 ? (
+                    <Badge tone="attention">Trial - {trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} left</Badge>
+                  ) : currentPlanKey !== "free" ? (
                     <Badge tone="success">Active</Badge>
+                  ) : null}
+                  {isTestCharge && (
+                    <Badge tone="info">Test</Badge>
                   )}
                 </InlineStack>
               </BlockStack>

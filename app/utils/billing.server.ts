@@ -62,7 +62,7 @@ export async function isViewLimitExceeded(shopDomain: string): Promise<boolean> 
 
 export async function getActiveSubscription(
   admin: AdminGraphQL,
-): Promise<{ id: string; name: string; status: string } | null> {
+): Promise<{ id: string; name: string; status: string; trialDays: number; createdAt: string | null; test: boolean } | null> {
   const response = await admin.graphql(
     `query {
       currentAppInstallation {
@@ -71,6 +71,8 @@ export async function getActiveSubscription(
           name
           status
           test
+          trialDays
+          createdAt
           lineItems {
             plan {
               pricingDetails {
@@ -97,6 +99,9 @@ export async function getActiveSubscription(
     id: subs[0].id,
     name: subs[0].name,
     status: subs[0].status,
+    trialDays: subs[0].trialDays ?? 0,
+    createdAt: subs[0].createdAt ?? null,
+    test: subs[0].test ?? false,
   };
 }
 
