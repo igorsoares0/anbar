@@ -69,7 +69,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       const trialEnd = new Date(createdAt.getTime() + activeSub.trialDays * 24 * 60 * 60 * 1000);
       const now = new Date();
       const msRemaining = trialEnd.getTime() - now.getTime();
-      trialDaysRemaining = msRemaining > 0 ? Math.ceil(msRemaining / (1000 * 60 * 60 * 24)) : null;
+      trialDaysRemaining = msRemaining > 0 ? Math.floor(msRemaining / (1000 * 60 * 60 * 24)) : null;
     }
 
     return json({
