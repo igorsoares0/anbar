@@ -1,16 +1,14 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData, Link } from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import {
   Page,
   Layout,
   Card,
   Button,
-  DataTable,
   Badge,
   EmptyState,
   Text,
-  Icon,
   Tooltip,
   Box,
   InlineStack,
@@ -21,8 +19,6 @@ import {
 } from "@shopify/polaris";
 import {
   EditIcon,
-  DuplicateIcon,
-  ViewIcon,
 } from "@shopify/polaris-icons";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
@@ -45,9 +41,9 @@ export default function AnnouncementBarsIndex() {
   const getTypeVariant = (type: string) => {
     switch (type) {
       case 'continuous': return { tone: 'info' as const, content: 'Continuous Scroll' };
-      case 'simple': return { tone: 'subdued' as const, content: 'Simple' };
+      case 'simple': return { tone: 'read-only' as const, content: 'Simple' };
       case 'multiple': return { tone: 'warning' as const, content: 'Multiple' };
-      default: return { tone: 'subdued' as const, content: type };
+      default: return { tone: 'read-only' as const, content: type };
     }
   };
 
@@ -61,13 +57,7 @@ export default function AnnouncementBarsIndex() {
 
   return (
     <Page>
-      <TitleBar
-        title="Announcement Bars"
-        primaryAction={{
-          content: "Create announcement bar",
-          url: "/app/announcements/new",
-        }}
-      />
+      <TitleBar title="Announcement Bars" />
       <Layout>
         <Layout.Section>
           {announcementBars.length === 0 ? (
@@ -137,7 +127,7 @@ export default function AnnouncementBarsIndex() {
                               {bar.isPublished ? (
                                 <Badge tone="success">Published</Badge>
                               ) : (
-                                <Badge tone="subdued">Draft</Badge>
+                                <Badge tone="read-only">Draft</Badge>
                               )}
                             </InlineStack>
                             

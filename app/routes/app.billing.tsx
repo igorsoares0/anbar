@@ -210,7 +210,7 @@ export default function BillingPage() {
                 <InlineStack gap="200" blockAlign="center">
                   <Text as="span" variant="headingLg">{currentPlan.name}</Text>
                   {currentPlanKey !== "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 ? (
-                    <Badge tone="attention">Trial - {trialDaysRemaining} day{trialDaysRemaining !== 1 ? "s" : ""} left</Badge>
+                    <Badge tone="attention">{`Trial - ${trialDaysRemaining} day${trialDaysRemaining !== 1 ? "s" : ""} left`}</Badge>
                   ) : currentPlanKey !== "free" ? (
                     <Badge tone="success">Active</Badge>
                   ) : null}

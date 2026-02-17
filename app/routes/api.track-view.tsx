@@ -1,7 +1,6 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import { incrementViewCount, syncEmptyBarsToMetafields, syncBarsToMetafields } from "../utils/billing.server";
-import { PLANS } from "../utils/plans";
 
 // 1x1 transparent GIF (43 bytes)
 const TRANSPARENT_GIF = Buffer.from(
@@ -53,7 +52,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   recentViews.set(rateLimitKey, now);
 
-  const { viewCount, limitExceeded } = await incrementViewCount(shop);
+  const { limitExceeded } = await incrementViewCount(shop);
 
   if (limitExceeded) {
     // Bars should be hidden — clear metafields and mark shop as needing restore later
