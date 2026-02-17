@@ -20,6 +20,7 @@ import {
   getOrCreateShop,
   getMonthlyUsage,
   getActiveSubscription,
+  SubscriptionQueryError,
   planKeyFromSubscriptionName,
   isViewLimitExceeded,
 } from "../utils/billing.server";
@@ -42,7 +43,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const viewCount = await getMonthlyUsage(shop);
 
   // Sync subscription status from Shopify
-  const activeSub = await getActiveSubscription(admin);
+  let activeSub;
+  try {
+    activeSub = await getActiveSubscription(admin);
+  } catch (error) {
+    if (error instanceof SubscriptionQueryError) {
+      // API error — return current local state without modifying the plan
+      console.error(`[BILLING] Could not verify subscription for ${shop}, using local state`);
+      return json({ shopRecord, viewCount, trialDaysRemaining: null, isTestCharge: false });
+    }
+    throw error;
+  }
   if (activeSub && activeSub.status === "ACTIVE") {
     const planKey = planKeyFromSubscriptionName(activeSub.name);
     if (shopRecord.plan !== planKey || shopRecord.subscriptionId !== activeSub.id) {

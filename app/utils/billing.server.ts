@@ -60,6 +60,13 @@ export async function isViewLimitExceeded(shopDomain: string): Promise<boolean> 
   return viewCount > plan.viewLimit;
 }
 
+export class SubscriptionQueryError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SubscriptionQueryError";
+  }
+}
+
 export async function getActiveSubscription(
   admin: AdminGraphQL,
 ): Promise<{ id: string; name: string; status: string; trialDays: number; createdAt: string | null; test: boolean } | null> {
@@ -91,7 +98,13 @@ export async function getActiveSubscription(
   );
 
   const result = await response.json();
-  const subs = result.data?.currentAppInstallation?.activeSubscriptions ?? [];
+
+  if (!result.data) {
+    console.error("[BILLING] GraphQL error fetching subscription:", result.errors);
+    throw new SubscriptionQueryError("Failed to fetch subscription status from Shopify");
+  }
+
+  const subs = result.data.currentAppInstallation?.activeSubscriptions ?? [];
 
   if (subs.length === 0) return null;
 
