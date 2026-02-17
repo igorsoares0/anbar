@@ -106,22 +106,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return json({ error: "Invalid plan" }, { status: 400 });
     }
 
-    // When changing between paid plans, cancel the existing subscription first
-    // to prevent the merchant from being charged for two plans simultaneously.
-    if (intent === "change") {
-      const shopRecord = await prisma.shop.findUnique({ where: { shop } });
-      if (shopRecord?.subscriptionId) {
-        await billing.cancel({
-          subscriptionId: shopRecord.subscriptionId,
-          isTest: process.env.NODE_ENV !== "production",
-          prorate: true,
-        });
-      }
-    }
-
     const billingPlanName = PLAN_KEY_TO_BILLING_NAME[planKey as keyof typeof PLAN_KEY_TO_BILLING_NAME];
 
-    // billing.request() creates the subscription and redirects automatically.
+    // billing.request() creates the subscription and redirects to Shopify for approval.
+    // When the merchant approves, Shopify automatically replaces the existing subscription.
+    // Do NOT cancel the old subscription first — if the merchant declines, they'd lose their plan.
     // It throws a redirect Response internally — do NOT wrap in try/catch.
     await billing.request({
       plan: billingPlanName,

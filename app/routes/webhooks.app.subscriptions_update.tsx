@@ -60,15 +60,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     status === "EXPIRED" ||
     status === "FROZEN"
   ) {
-    await prisma.shop.update({
-      where: { shop },
-      data: {
-        plan: "free",
-        subscriptionId: null,
-        subscriptionStatus: null,
-      },
-    });
-    console.log(`[WEBHOOK] Reverted ${shop} to free (status: ${status})`);
+    // Only downgrade to free if the cancelled subscription is the one we have on record.
+    // During plan changes, Shopify cancels the old subscription after the new one is active.
+    // Without this check, a late CANCELLED webhook for the old sub could overwrite the new plan.
+    if (!adminGraphqlApiId || shopRecord.subscriptionId === adminGraphqlApiId) {
+      await prisma.shop.update({
+        where: { shop },
+        data: {
+          plan: "free",
+          subscriptionId: null,
+          subscriptionStatus: null,
+        },
+      });
+      console.log(`[WEBHOOK] Reverted ${shop} to free (status: ${status})`);
+    } else {
+      console.log(`[WEBHOOK] Ignoring ${status} for old subscription ${adminGraphqlApiId} (current: ${shopRecord.subscriptionId})`);
+    }
   }
 
   return new Response(null, { status: 200 });
