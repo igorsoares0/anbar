@@ -61,8 +61,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     syncEmptyBarsToMetafields(shop).catch((err) =>
       console.error(`[TRACK] Failed to sync empty bars for ${shop}:`, err),
     );
-  } else if (!restoredShops.has(shop) && viewCount > PLANS.free.viewLimit) {
-    // Paid plan with views above free limit — bars may have been cleared, restore them once
+  } else if (!restoredShops.has(shop)) {
+    // Bars may have been cleared (limit exceeded in a previous month, or after a server restart).
+    // Restore once per shop per process to ensure they're visible when within limits.
     syncBarsToMetafields(shop)
       .then(() => restoredShops.add(shop))
       .catch((err) =>
