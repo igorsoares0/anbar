@@ -58,9 +58,21 @@ Description: JavaScript that automatically injects announcement bars into cart d
   
   let isInjected = false;
   let observer = null;
-  
+  let trackingFired = false;
+
   // Prevent multiple close executions
   let closingInProgress = false;
+
+  // Fire the view tracking pixel once per page load, only from JS
+  // (the Liquid template already handles it on the cart page itself)
+  function trackCartDrawerView() {
+    if (trackingFired) return;
+    // Avoid double-counting if the Liquid pixel already fired (cart page)
+    if (document.querySelector('img[src*="/apps/anbar/track-view"]')) return;
+    trackingFired = true;
+    const img = new Image();
+    img.src = '/apps/anbar/track-view';
+  }
 
   // Cart drawer close function
   function anbarCartDrawerClose(barId) {
@@ -447,6 +459,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
       }, 100);
       
       isInjected = true;
+      trackCartDrawerView();
       console.log('Anbar: SlideCartHQ direct injection successful');
       return true;
     } catch (error) {
@@ -694,6 +707,7 @@ Description: JavaScript that automatically injects announcement bars into cart d
     // Inject CSS for continuous scroll after successful injection
     if (isInjected) {
       injectCartDrawerCSS();
+      trackCartDrawerView();
     }
     
     // Post-injection verification
