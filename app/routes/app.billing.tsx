@@ -126,6 +126,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await billing.request({
       plan: billingPlanName,
       isTest: process.env.NODE_ENV !== "production",
+      // Upgrades/downgrades between paid plans don't get a new trial
+      ...(intent === "change" ? { trialDays: 0 } : {}),
     });
   }
 
