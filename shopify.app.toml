@@ -3,7 +3,7 @@
 client_id = "4d36bf6cef9a57c0a1365018b03816d8"
 name = "anbar"
 handle = "anbar-1"
-application_url = "https://cheapest-controls-rip-awful.trycloudflare.com"
+application_url = "https://anbar.temply.pro"
 embedded = true
 
 [build]
@@ -42,10 +42,10 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://cheapest-controls-rip-awful.trycloudflare.com/auth/callback", "https://cheapest-controls-rip-awful.trycloudflare.com/auth/shopify/callback", "https://cheapest-controls-rip-awful.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://anbar.temply.pro/auth/callback", "https://anbar.temply.pro/auth/shopify/callback", "https://anbar.temply.pro/api/auth/callback"]
 
 [app_proxy]
-url = "https://cheapest-controls-rip-awful.trycloudflare.com/api"
+url = "https://anbar.temply.pro/api"
 subpath = "anbar"
 prefix = "apps"
 
