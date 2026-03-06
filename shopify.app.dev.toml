@@ -1,13 +1,17 @@
-# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+# Configuração para desenvolvimento local
+# Use: shopify app dev --config=shopify.app.dev.toml
+#
+# IMPORTANTE: Substitua o client_id pelo Client ID do seu app de desenvolvimento
+# criado no Partner Dashboard (https://partners.shopify.com)
 
-client_id = "4d36bf6cef9a57c0a1365018b03816d8"
-name = "anbar"
-handle = "anbar-1"
-application_url = "https://anbar.temply.pro"
+client_id = "835f1569f02499bd11de2a6e7a0477fa"
+name = "anbar-dev"
+handle = "anbar-dev"
+application_url = "https://localhost"
 embedded = true
 
 [build]
-automatically_update_urls_on_dev = false
+automatically_update_urls_on_dev = true
 
 [webhooks]
 api_version = "2025-07"
@@ -38,16 +42,10 @@ api_version = "2025-07"
   uri = "/webhooks/shop/redact"
 
 [access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://anbar.temply.pro/auth/callback", "https://anbar.temply.pro/auth/shopify/callback", "https://anbar.temply.pro/api/auth/callback"]
-
-[app_proxy]
-url = "https://anbar.temply.pro/api"
-subpath = "anbar"
-prefix = "apps"
+redirect_urls = ["https://localhost/auth/callback", "https://localhost/auth/shopify/callback", "https://localhost/api/auth/callback"]
 
 [pos]
 embedded = false
