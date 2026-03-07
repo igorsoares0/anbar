@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Shop" ADD COLUMN "hadTrial" BOOLEAN NOT NULL DEFAULT false;

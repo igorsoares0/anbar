@@ -47,5 +47,10 @@ scopes = "write_products"
 [auth]
 redirect_urls = ["https://localhost/auth/callback", "https://localhost/auth/shopify/callback", "https://localhost/api/auth/callback"]
 
+[app_proxy]
+url = "https://localhost/api"
+subpath = "anbar"
+prefix = "apps"
+
 [pos]
 embedded = false

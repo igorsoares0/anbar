@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { planKeyFromSubscriptionName, syncBarsToMetafields } from "../utils/billing.server";
+import { planKeyFromSubscriptionName, syncBarsToMetafields, syncEmptyBarsToMetafields, isViewLimitExceeded } from "../utils/billing.server";
 
 const MAX_SYNC_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
@@ -48,17 +48,28 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         plan: planKey,
         subscriptionId: adminGraphqlApiId || shopRecord.subscriptionId,
         subscriptionStatus: status,
+        hadTrial: true,
       },
     });
     console.log(`[WEBHOOK] Activated plan ${planKey} for ${shop}`);
 
     // Await sync with retries so bars are restored after upgrade
     await syncBarsWithRetry(shop);
+  } else if (status === "FROZEN") {
+    // FROZEN = shop didn't pay, Shopify gives a grace period.
+    // Keep the plan record but hide bars temporarily.
+    await prisma.shop.update({
+      where: { shop },
+      data: { subscriptionStatus: "FROZEN" },
+    });
+    console.log(`[WEBHOOK] Subscription frozen for ${shop}, hiding bars temporarily`);
+    syncEmptyBarsToMetafields(shop).catch((err) =>
+      console.error(`[WEBHOOK] Failed to hide bars for frozen ${shop}:`, err),
+    );
   } else if (
     status === "CANCELLED" ||
     status === "DECLINED" ||
-    status === "EXPIRED" ||
-    status === "FROZEN"
+    status === "EXPIRED"
   ) {
     // Only downgrade to free if the cancelled subscription is the one we have on record.
     // During plan changes, Shopify cancels the old subscription after the new one is active.
@@ -73,6 +84,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         },
       });
       console.log(`[WEBHOOK] Reverted ${shop} to free (status: ${status})`);
+
+      // Check if views exceed the free plan limit and sync accordingly
+      const limitExceeded = await isViewLimitExceeded(shop);
+      if (limitExceeded) {
+        syncEmptyBarsToMetafields(shop).catch((err) =>
+          console.error(`[WEBHOOK] Failed to clear bars after cancel for ${shop}:`, err),
+        );
+      } else {
+        syncBarsToMetafields(shop).catch((err) =>
+          console.error(`[WEBHOOK] Failed to sync bars after cancel for ${shop}:`, err),
+        );
+      }
     } else {
       console.log(`[WEBHOOK] Ignoring ${status} for old subscription ${adminGraphqlApiId} (current: ${shopRecord.subscriptionId})`);
     }

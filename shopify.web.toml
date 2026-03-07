@@ -4,4 +4,4 @@ webhooks_path = "/webhooks/app/uninstalled"
 
 [commands]
 predev = "npx prisma generate"
-dev = "npx prisma migrate deploy && npm exec remix vite:dev"
+dev = "npx dotenv -e .env.dev -- npx prisma migrate deploy && npx dotenv -e .env.dev -- npm exec remix vite:dev"

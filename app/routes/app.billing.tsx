@@ -106,7 +106,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { session, billing } = await authenticate.admin(request);
+  const { session, admin, billing } = await authenticate.admin(request);
   const shop = session.shop;
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
@@ -119,6 +119,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     const billingPlanName = PLAN_KEY_TO_BILLING_NAME[planKey as keyof typeof PLAN_KEY_TO_BILLING_NAME];
 
+    // Determine trial eligibility: no trial if shop already had one or changing between paid plans
+    const shopRecord = await prisma.shop.findUnique({ where: { shop } });
+    const skipTrial = intent === "change" || shopRecord?.hadTrial === true;
+
     // billing.request() creates the subscription and redirects to Shopify for approval.
     // When the merchant approves, Shopify automatically replaces the existing subscription.
     // Do NOT cancel the old subscription first — if the merchant declines, they'd lose their plan.
@@ -126,19 +130,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await billing.request({
       plan: billingPlanName,
       isTest: process.env.NODE_ENV !== "production",
-      // Upgrades/downgrades between paid plans don't get a new trial
-      ...(intent === "change" ? { trialDays: 0 } : {}),
+      ...(skipTrial ? { trialDays: 0 } : {}),
     });
   }
 
   if (intent === "cancel") {
     const shopRecord = await prisma.shop.findUnique({ where: { shop } });
     if (shopRecord?.subscriptionId) {
+      // Determine isTest from the actual subscription, not NODE_ENV
+      let isTestCharge = process.env.NODE_ENV !== "production";
+      try {
+        const activeSub = await getActiveSubscription(admin);
+        if (activeSub) {
+          isTestCharge = activeSub.test;
+        }
+      } catch {
+        // Fall back to NODE_ENV-based detection
+      }
+
       // billing.cancel() cancels the subscription on Shopify's side.
       // The APP_SUBSCRIPTIONS_UPDATE webhook will handle updating the local DB.
       await billing.cancel({
         subscriptionId: shopRecord.subscriptionId,
-        isTest: process.env.NODE_ENV !== "production",
+        isTest: isTestCharge,
         prorate: true,
       });
     }
@@ -160,6 +174,18 @@ export default function BillingPage() {
   const isNearLimit = usagePercent > 80;
 
   function handleSubscribe(planKey: PlanKey) {
+    const targetPlan = PLANS[planKey];
+    const isDowngrading = targetPlan.price < currentPlan.price;
+
+    // Warn if downgrading and current views exceed target plan's limit
+    if (isDowngrading && targetPlan.viewLimit !== Infinity && viewCount > targetPlan.viewLimit) {
+      if (!confirm(
+        `You currently have ${formatNumber(viewCount)} views this month, which exceeds the ${targetPlan.name} plan limit of ${formatLimit(targetPlan.viewLimit)}. Your announcement bars will be hidden immediately. Continue?`
+      )) {
+        return;
+      }
+    }
+
     const formData = new FormData();
     if (currentPlanKey !== "free" && currentPlanKey !== planKey) {
       formData.set("intent", "change");
@@ -171,7 +197,12 @@ export default function BillingPage() {
   }
 
   function handleCancel() {
-    if (!confirm("Are you sure you want to cancel your subscription? You will be downgraded to the Free plan.")) {
+    const freePlan = PLANS.free;
+    let message = "Are you sure you want to cancel your subscription? You will be downgraded to the Free plan.";
+    if (viewCount > freePlan.viewLimit) {
+      message = `You currently have ${formatNumber(viewCount)} views this month, which exceeds the Free plan limit of ${formatLimit(freePlan.viewLimit)}. Your announcement bars will be hidden immediately. Continue?`;
+    }
+    if (!confirm(message)) {
       return;
     }
     const formData = new FormData();
@@ -188,6 +219,7 @@ export default function BillingPage() {
     return n.toString();
   }
 
+  const hadTrial = shopRecord.hadTrial ?? false;
   const planEntries = Object.entries(PLANS) as [PlanKey, typeof PLANS[PlanKey]][];
 
   return (
@@ -294,7 +326,7 @@ export default function BillingPage() {
                         ? "Unlimited views/month"
                         : `${formatLimit(plan.viewLimit)} views/month`}
                     </Text>
-                    {plan.price > 0 && (
+                    {plan.price > 0 && !hadTrial && (
                       <Text as="p" variant="bodySm" tone="subdued">
                         7-day free trial
                       </Text>
