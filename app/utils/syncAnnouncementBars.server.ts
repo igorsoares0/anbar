@@ -14,15 +14,25 @@ export async function syncAnnouncementBarsToMetafields(
   admin: AdminGraphQL
 ): Promise<{ success: boolean; error?: string; synced?: number }> {
   try {
-    // Check if view limit is exceeded — if so, sync empty array
+    // Check if the subscription is frozen or view limit is exceeded — if so, sync empty array
+    const shopRecord = await prisma.shop.findUnique({
+      where: { shop: session.shop },
+      select: { subscriptionStatus: true },
+    });
+    const isFrozen = shopRecord?.subscriptionStatus === "FROZEN";
     const limitExceeded = await isViewLimitExceeded(session.shop);
+
+    if (isFrozen) {
+      console.log(`[SYNC] Subscription frozen for ${session.shop}, syncing empty bars`);
+    }
 
     if (limitExceeded) {
       console.log(`[SYNC] View limit exceeded for ${session.shop}, syncing empty bars`);
     }
 
     // Get all active and published announcement bars
-    const announcementBars = limitExceeded ? [] : await prisma.announcementBar.findMany({
+    const shouldHideBars = isFrozen || limitExceeded;
+    const announcementBars = shouldHideBars ? [] : await prisma.announcementBar.findMany({
       where: { 
         shop: session.shop,
         isActive: true,

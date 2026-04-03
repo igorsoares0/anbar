@@ -22,6 +22,14 @@ async function syncBarsWithRetry(shop: string): Promise<void> {
   console.error(`[WEBHOOK] Exhausted retries restoring bars for ${shop}`);
 }
 
+function runInBackground(task: () => Promise<void>) {
+  setImmediate(() => {
+    task().catch((err) => {
+      console.error("[WEBHOOK] Background task failed:", err);
+    });
+  });
+}
+
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { shop, payload } = await authenticate.webhook(request);
 
@@ -53,8 +61,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
     console.log(`[WEBHOOK] Activated plan ${planKey} for ${shop}`);
 
-    // Await sync with retries so bars are restored after upgrade
-    await syncBarsWithRetry(shop);
+    // Keep webhook fast: sync after response flow in background.
+    runInBackground(() => syncBarsWithRetry(shop));
   } else if (status === "FROZEN") {
     // FROZEN = shop didn't pay, Shopify gives a grace period.
     // Keep the plan record but hide bars temporarily.
@@ -63,9 +71,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       data: { subscriptionStatus: "FROZEN" },
     });
     console.log(`[WEBHOOK] Subscription frozen for ${shop}, hiding bars temporarily`);
-    syncEmptyBarsToMetafields(shop).catch((err) =>
-      console.error(`[WEBHOOK] Failed to hide bars for frozen ${shop}:`, err),
-    );
+    runInBackground(() => syncEmptyBarsToMetafields(shop));
   } else if (
     status === "CANCELLED" ||
     status === "DECLINED" ||
@@ -85,17 +91,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       });
       console.log(`[WEBHOOK] Reverted ${shop} to free (status: ${status})`);
 
-      // Check if views exceed the free plan limit and sync accordingly
-      const limitExceeded = await isViewLimitExceeded(shop);
-      if (limitExceeded) {
-        syncEmptyBarsToMetafields(shop).catch((err) =>
-          console.error(`[WEBHOOK] Failed to clear bars after cancel for ${shop}:`, err),
-        );
-      } else {
-        syncBarsToMetafields(shop).catch((err) =>
-          console.error(`[WEBHOOK] Failed to sync bars after cancel for ${shop}:`, err),
-        );
-      }
+      // Keep webhook fast: evaluate limit and sync in the background.
+      runInBackground(async () => {
+        const limitExceeded = await isViewLimitExceeded(shop);
+        if (limitExceeded) {
+          await syncEmptyBarsToMetafields(shop);
+          return;
+        }
+        await syncBarsToMetafields(shop);
+      });
     } else {
       console.log(`[WEBHOOK] Ignoring ${status} for old subscription ${adminGraphqlApiId} (current: ${shopRecord.subscriptionId})`);
     }

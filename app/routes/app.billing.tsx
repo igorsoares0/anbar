@@ -33,6 +33,7 @@ const PLAN_KEY_TO_BILLING_NAME = {
   professional: BILLING_PLANS.PROFESSIONAL,
   enterprise: BILLING_PLANS.ENTERPRISE,
 } as const;
+const TERMINAL_SUBSCRIPTION_STATUSES = new Set(["CANCELLED", "DECLINED", "EXPIRED"]);
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, admin } = await authenticate.admin(request);
@@ -54,42 +55,100 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
     throw error;
   }
-  if (activeSub && activeSub.status === "ACTIVE") {
-    const planKey = planKeyFromSubscriptionName(activeSub.name);
-    if (shopRecord.plan !== planKey || shopRecord.subscriptionId !== activeSub.id) {
+  if (activeSub) {
+    if (activeSub.status === "ACTIVE") {
+      const planKey = planKeyFromSubscriptionName(activeSub.name);
+      if (shopRecord.plan !== planKey || shopRecord.subscriptionId !== activeSub.id || shopRecord.subscriptionStatus !== activeSub.status) {
+        await prisma.shop.update({
+          where: { shop },
+          data: {
+            plan: planKey,
+            subscriptionId: activeSub.id,
+            subscriptionStatus: activeSub.status,
+          },
+        });
+      }
+
+      // Restore bars to metafields if view limit is no longer exceeded on this plan
+      const limitExceeded = await isViewLimitExceeded(shop);
+      if (!limitExceeded) {
+        await syncAnnouncementBarsToMetafields({ shop }, admin);
+      }
+
+      // Calculate trial days remaining based on createdAt + trialDays
+      let trialDaysRemaining: number | null = null;
+      if (activeSub.trialDays > 0 && activeSub.createdAt) {
+        const createdAt = new Date(activeSub.createdAt);
+        const trialEnd = new Date(createdAt.getTime() + activeSub.trialDays * 24 * 60 * 60 * 1000);
+        const now = new Date();
+        const msRemaining = trialEnd.getTime() - now.getTime();
+        trialDaysRemaining = msRemaining > 0 ? Math.ceil(msRemaining / (1000 * 60 * 60 * 24)) : null;
+      }
+
+      return json({
+        shopRecord: { ...shopRecord, plan: planKey, subscriptionId: activeSub.id, subscriptionStatus: activeSub.status },
+        viewCount,
+        trialDaysRemaining,
+        isTestCharge: activeSub.test,
+      });
+    }
+
+    if (activeSub.status === "FROZEN") {
+      const mappedPlan = planKeyFromSubscriptionName(activeSub.name);
+      const nextPlan = mappedPlan === "free" ? shopRecord.plan : mappedPlan;
+
+      if (shopRecord.plan !== nextPlan || shopRecord.subscriptionId !== activeSub.id || shopRecord.subscriptionStatus !== "FROZEN") {
+        await prisma.shop.update({
+          where: { shop },
+          data: {
+            plan: nextPlan,
+            subscriptionId: activeSub.id,
+            subscriptionStatus: "FROZEN",
+          },
+        });
+      }
+
+      return json({
+        shopRecord: { ...shopRecord, plan: nextPlan, subscriptionId: activeSub.id, subscriptionStatus: "FROZEN" },
+        viewCount,
+        trialDaysRemaining: null,
+        isTestCharge: activeSub.test,
+      });
+    }
+
+    if (TERMINAL_SUBSCRIPTION_STATUSES.has(activeSub.status) && shopRecord.plan !== "free") {
+      await prisma.shop.update({
+        where: { shop },
+        data: { plan: "free", subscriptionId: null, subscriptionStatus: null },
+      });
+      return json({
+        shopRecord: { ...shopRecord, plan: "free", subscriptionId: null, subscriptionStatus: null },
+        viewCount,
+        trialDaysRemaining: null,
+        isTestCharge: false,
+      });
+    }
+
+    if (shopRecord.subscriptionId !== activeSub.id || shopRecord.subscriptionStatus !== activeSub.status) {
       await prisma.shop.update({
         where: { shop },
         data: {
-          plan: planKey,
           subscriptionId: activeSub.id,
           subscriptionStatus: activeSub.status,
         },
       });
     }
 
-    // Restore bars to metafields if view limit is no longer exceeded on this plan
-    const limitExceeded = await isViewLimitExceeded(shop);
-    if (!limitExceeded) {
-      await syncAnnouncementBarsToMetafields({ shop }, admin);
-    }
-
-    // Calculate trial days remaining based on createdAt + trialDays
-    let trialDaysRemaining: number | null = null;
-    if (activeSub.trialDays > 0 && activeSub.createdAt) {
-      const createdAt = new Date(activeSub.createdAt);
-      const trialEnd = new Date(createdAt.getTime() + activeSub.trialDays * 24 * 60 * 60 * 1000);
-      const now = new Date();
-      const msRemaining = trialEnd.getTime() - now.getTime();
-      trialDaysRemaining = msRemaining > 0 ? Math.ceil(msRemaining / (1000 * 60 * 60 * 24)) : null;
-    }
-
     return json({
-      shopRecord: { ...shopRecord, plan: planKey, subscriptionId: activeSub.id, subscriptionStatus: activeSub.status },
+      shopRecord: { ...shopRecord, subscriptionId: activeSub.id, subscriptionStatus: activeSub.status },
       viewCount,
-      trialDaysRemaining,
+      trialDaysRemaining: null,
       isTestCharge: activeSub.test,
     });
-  } else if (shopRecord.plan !== "free") {
+  }
+
+  // Keep local frozen status unless Shopify sends a terminal status update/webhook.
+  if (shopRecord.subscriptionStatus !== "FROZEN" && shopRecord.plan !== "free") {
     await prisma.shop.update({
       where: { shop },
       data: { plan: "free", subscriptionId: null, subscriptionStatus: null },
@@ -172,6 +231,7 @@ export default function BillingPage() {
   const currentPlan = PLANS[currentPlanKey] ?? PLANS.free;
   const usagePercent = currentPlan.viewLimit === Infinity ? 0 : Math.min((viewCount / currentPlan.viewLimit) * 100, 100);
   const isNearLimit = usagePercent > 80;
+  const isFrozenSubscription = shopRecord.subscriptionStatus === "FROZEN";
 
   function handleSubscribe(planKey: PlanKey) {
     const targetPlan = PLANS[planKey];
@@ -243,7 +303,9 @@ export default function BillingPage() {
                 <Text as="h2" variant="headingMd">Current Plan</Text>
                 <InlineStack gap="200" blockAlign="center">
                   <Text as="span" variant="headingLg">{currentPlan.name}</Text>
-                  {currentPlanKey !== "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 ? (
+                  {isFrozenSubscription ? (
+                    <Badge tone="attention">Frozen</Badge>
+                  ) : currentPlanKey !== "free" && trialDaysRemaining !== null && trialDaysRemaining > 0 ? (
                     <Badge tone="attention">{`Trial - ${trialDaysRemaining} day${trialDaysRemaining !== 1 ? "s" : ""} left`}</Badge>
                   ) : currentPlanKey !== "free" ? (
                     <Badge tone="success">Active</Badge>
