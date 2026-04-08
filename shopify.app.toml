@@ -3,7 +3,7 @@
 client_id = "4d36bf6cef9a57c0a1365018b03816d8"
 name = "anbar"
 handle = "anbar-1"
-application_url = "https://anbar.temply.pro"
+application_url = "https://anbar.useanbar.com"
 embedded = true
 
 [build]
@@ -42,10 +42,10 @@ api_version = "2025-07"
 scopes = "write_products"
 
 [auth]
-redirect_urls = ["https://anbar.temply.pro/auth/callback", "https://anbar.temply.pro/auth/shopify/callback", "https://anbar.temply.pro/api/auth/callback"]
+redirect_urls = ["https://anbar.useanbar.com/auth/callback", "https://anbar.useanbar.com/auth/shopify/callback", "https://anbar.useanbar.com/api/auth/callback"]
 
 [app_proxy]
-url = "https://anbar.temply.pro/api"
+url = "https://anbar.useanbar.com/api"
 subpath = "anbar"
 prefix = "apps"
 
